@@ -31,7 +31,7 @@ import utilities.container_inputs as inputs
 # ###########################
 # page_setup()
 st.set_page_config(
-    page_title='Colour band map demo',
+    page_title='Stroke unit demographics',
     page_icon=':rainbow:',
     layout='wide'
     )
@@ -40,112 +40,143 @@ container_maps = st.empty()
 
 
 # Import the full travel time matrix:
-df_travel_times = pd.read_csv(
-    './data/lsoa_travel_time_matrix_calibrated.csv', index_col='LSOA')
+df_demog = pd.read_csv(
+    './data/collated_data_amb.csv', index_col='LSOA')
 # Rename index to 'lsoa':
-df_travel_times.index.name = 'lsoa'
+df_demog.index.name = 'lsoa'
+
+
+# TO DO - split off numerical data and region lookup data.
+# Make separate region files and allow option to plot them as outlines.
+
+# TO DO - make separate legend type for categorical data (e.g. rural-urban type)
+
+# TO DO - put Wales back into the LSOA and MSOA shapefiles.
 
 
 # #################################
 # ########## USER INPUTS ##########
 # #################################
 
+cols_selectable = list(df_demog.columns)
+cols_to_remove = [
+    'income_domain_rank',
+    'idaci_rank',
+    'idaopi_rank',
+    'closest_ivt_unit',
+    'closest_mt_unit',
+    'closest_mt_transfer',
+    'la_district_name_2019',
+    'rural_urban_2011',
+    'ambulance_service',
+    'local_authority_district_22',
+    'LAD22NM',
+    'country',
+    'ethnic_group_all_categories_ethnic_group',
+    'all_categories_general_health'
+]
+for c in cols_to_remove:
+    cols_selectable.remove(c)
+
+cols = st.columns(2)
+with cols[0]:
+    col1 = st.selectbox('Column 1', options=cols_selectable, index=1)
+with cols[1]:
+    col2 = st.selectbox('Column 2', options=cols_selectable, index=2)
+
+
 # User inputs for which hospitals to pick:
 catchment = Catchment()
 df_units = catchment.get_unit_services()
-
-# Limit to England:
-df_units = df_units.loc[~df_units['icb'].isna()].copy()
-# Sort by ISDN (approximates sort by region):
-df_units = df_units.sort_values('isdn')
-
-# Find where in the list the default options are.
-# Ugly conversion to int from int64 so selectbox() can take it.
-ind1 = int(np.where(df_units.index == 'LE15WW')[0][0])
-ind2 = int(np.where(df_units.index == 'TA15DA')[0][0])
-
-# Select hospitals by name...
-unit1_name = st.selectbox(
-    'Hospital 1',
-    options=df_units['stroke_team'],
-    index=ind1
-)
-unit2_name = st.selectbox(
-    'Hospital 2',
-    options=df_units['stroke_team'],
-    index=ind2
-)
-
-# ... then convert names to postcodes for easier lookup.
-unit1 = df_units.loc[df_units['stroke_team'] == unit1_name].index.values[0]
-unit2 = df_units.loc[df_units['stroke_team'] == unit2_name].index.values[0]
 
 
 # Colourmap selection
 cmap_names = [
     'cosmic_r', 'viridis_r', 'inferno_r', 'neutral_r'
     ]
-cmap_diff_names = [
-    'iceburn_r', 'seaweed', 'fusion', 'waterlily'
+cmap_displays = [
+    inputs.make_colourbar_display_string(cmap_name, char_line='█', n_lines=15)
+    for cmap_name in cmap_names
     ]
-with st.sidebar:
-    st.markdown('### Colour schemes')
-    cmap_name, cmap_diff_name = inputs.select_colour_maps(
-        cmap_names, cmap_diff_names)
 
-    with st.form('Colour band setup'):
-        v_min = st.number_input(
-            'LHS vmin',
-            min_value=0,
-            max_value=480,
-            step=5,
-            value=0,
-            )
-        v_max = st.number_input(
-            'LHS vmax',
-            min_value=0,
-            max_value=480,
-            step=5,
-            value=120,
-            )
-        step_size = st.number_input(
-            'LHS step',
-            min_value=5,
-            max_value=60,
-            step=5,
-            value=30,
-            )
+# v_min = np.min(df_data[col1])
+# v_max = np.max(df_data[col1])
+# step_size = (v_max - v_min) * (1.0/5.0)
 
-        v_min_diff = st.number_input(
-            'RHS vmin',
-            min_value=-480,
-            max_value=0,
-            step=5,
-            value=-120,
-            )
-        v_max_diff = st.number_input(
-            'RHS vmax',
-            min_value=0,
-            max_value=480,
-            step=5,
-            value=120,
-            )
-        step_size_diff = st.number_input(
-            'RHS step',
-            min_value=5,
-            max_value=120,
-            step=5,
-            value=30,
-            )
-        submitted = st.form_submit_button('Submit')
+# v_min_diff = np.min(df_data[col2])
+# v_max_diff = np.max(df_data[col2])
+# step_size_diff = (v_max_diff - v_min_diff) * (1.0/5.0)
 
+col1_colour_scale_dict = inputs.lookup_colour_scale(col1)
+col2_colour_scale_dict = inputs.lookup_colour_scale(col2)
+
+# Inputs for overwriting default colourbars:
+with st.expander('Colour setup'):
+    cols = st.columns(2)
+    with cols[0]:
+        container_map1_cbar_setup = st.container()
+    with cols[1]:
+        container_map2_cbar_setup = st.container()
+
+with container_map1_cbar_setup:
+    with st.form('Left map'):
+        cols = st.columns(3)
+        with cols[0]:
+            vmin_map1 = st.number_input('Minimum',
+                                        value=col1_colour_scale_dict['vmin'])
+        with cols[2]:
+            vmax_map1 = st.number_input('Maximum',
+                                        value=col1_colour_scale_dict['vmax'])
+        with cols[1]:
+            step_size_map1 = st.number_input(
+                'Step size', value=col1_colour_scale_dict['step_size'])
+
+        cmap_name_map1 = st.radio(
+            'Colour display for map',
+            cmap_names,
+            captions=cmap_displays,
+            key='cmap_name_map1'
+        )
+        flip_cmap1 = st.checkbox('Reverse colour scale', key='flip_map1')
+        if flip_cmap1:
+            cmap_name_map1 += '_r'
+        if cmap_name_map1.endswith('_r_r'):
+            # Remove the double reverse reverse.
+            cmap_name_map1 = cmap_name_map1[:-4]
+
+        submit_left = st.form_submit_button('Redraw left map')
+
+with container_map2_cbar_setup:
+    with st.form('Right map'):
+        cols = st.columns(3)
+        with cols[0]:
+            vmin_map2 = st.number_input('Minimum',
+                                        value=col2_colour_scale_dict['vmin'])
+        with cols[2]:
+            vmax_map2 = st.number_input('Maximum',
+                                        value=col2_colour_scale_dict['vmax'])
+        with cols[1]:
+            step_size_map2 = st.number_input(
+                'Step size', value=col2_colour_scale_dict['step_size'])
+
+        cmap_name_map2 = st.radio(
+            'Colour display for map',
+            cmap_names,
+            captions=cmap_displays,
+            key='cmap_name_map2'
+        )
+        flip_cmap2 = st.checkbox('Reverse colour scale', key='flip_map2')
+        if flip_cmap2:
+            cmap_name_map2 += '_r'
+        if cmap_name_map2.endswith('_r_r'):
+            # Remove the double reverse reverse.
+            cmap_name_map2 = cmap_name_map2[:-4]
+
+        submit_right = st.form_submit_button('Redraw right map')
 
 # Display names:
-subplot_titles = [
-    'Time to hospital 1',
-    'Time benefit of hospital 2 over hospital 1'
-]
-cmap_titles = [f'{s} (minutes)' for s in subplot_titles]
+subplot_titles = [col1, col2]
+cmap_titles = subplot_titles
 
 
 # #######################################
@@ -156,15 +187,83 @@ cmap_titles = [f'{s} (minutes)' for s in subplot_titles]
 with container_maps:
     plot_maps.plotly_blank_maps(['', ''], n_blank=2)
 
-# Pick out the data for hospitals 1 and 2 only:
-df_data = df_travel_times[[unit1, unit2]]
 
-# Calculate the time difference between hospitals 1 and 2:
-if unit1 != unit2:
-    df_data['diff'] = df_data[unit1] - df_data[unit2]
-else:
-    # Difference is zero when the same unit is selected twice.
-    df_data['diff'] = 0.0
+# # Remove some data that doesn't look useful here:
+# cols_to_remove = [
+#     'income_domain_rank',
+#     'idaci_rank',
+#     'idaopi_rank'
+# ]
+# df_demog = df_demog.drop(cols_to_remove, axis='columns')
+
+
+# DO THIS JUST ONCE IN ADVANCE AND SAVE RESULTS? TO DO -----------------------------------------------
+
+cols_to_scale = [c for c in df_demog.columns if (
+    (
+        # (c.startswith('ethnic_group')) |
+        # (c.endswith('health')) |
+        # (c.startswith('day_to_day_activities')) |
+        (c.startswith('age_band_all'))
+    )
+    )]
+# # Stuff that's hard to pick out with conditions:
+# cols_to_scale += [
+#     'all_categories_long_term_health_problem_or_disability',
+#     ]
+df_demog[cols_to_scale] = df_demog[cols_to_scale].astype(float)
+df_demog.loc[:, cols_to_scale] = (
+    df_demog.loc[:, cols_to_scale].div(
+        df_demog['population_all'], axis=0))
+
+cols_ethnic = [c for c in df_demog.columns if c.startswith('ethnic_group')]
+cols_ethnic.remove('ethnic_group_all_categories_ethnic_group')
+df_demog[cols_ethnic] = df_demog[cols_ethnic].astype(float)
+df_demog.loc[:, cols_ethnic] = (
+    df_demog.loc[:, cols_ethnic].div(
+        df_demog['ethnic_group_all_categories_ethnic_group'], axis=0))
+
+cols_activities = [c for c in df_demog.columns if c.startswith('day_to_day')]
+# cols_activities.remove('all_categories_long_term_health_problem_or_disability')
+df_demog[cols_activities] = df_demog[cols_activities].astype(float)
+df_demog.loc[:, cols_activities] = (
+    df_demog.loc[:, cols_activities].div(
+        df_demog['all_categories_long_term_health_problem_or_disability'],
+        axis=0))
+
+
+cols_health = [c for c in df_demog.columns if c.endswith('health')]
+cols_health.remove('all_categories_general_health')
+df_demog[cols_health] = df_demog[cols_health].astype(float)
+df_demog.loc[:, cols_health] = (
+    df_demog.loc[:, cols_health].div(
+        df_demog['all_categories_general_health'], axis=0))
+
+cols_female = [c for c in df_demog.columns if (
+    ('females' in c) & (c.startswith('population') is False)
+    )]
+df_demog[cols_female] = df_demog[cols_female].astype(float)
+df_demog.loc[:, cols_female] = (
+    df_demog.loc[:, cols_female].div(
+        df_demog['population_females'], axis=0))
+
+cols_male = [c for c in df_demog.columns if (
+    ('_males' in c) & (c.startswith('population') is False)
+    )]
+df_demog[cols_male] = df_demog[cols_male].astype(float)
+df_demog.loc[:, cols_male] = (
+    df_demog.loc[:, cols_male].div(
+        df_demog['population_males'], axis=0))
+
+st.write(df_demog)
+
+# for col in df_demog.columns:
+#     try:
+#         st.write(col, np.min(df_demog[col]), np.max(df_demog[col]))
+#     except TypeError:
+#         pass
+# # st.stop()
+
 
 
 # ####################################
@@ -173,25 +272,23 @@ else:
 # Keep this below the results above because the map creation is slow.
 
 gdf_lhs, colour_dict = maps.create_colour_gdf(
-    df_data,
-    unit1,
-    v_min,
-    v_max,
-    step_size,
-    cmap_name=cmap_name,
+    df_demog[col1],
+    col1,
+    vmin_map1,
+    vmax_map1,
+    step_size_map1,
+    cmap_name=cmap_name_map1,
     cbar_title=cmap_titles[0],
     )
 gdf_rhs, colour_diff_dict = maps.create_colour_gdf(
-    df_data,
-    'diff',
-    v_min_diff,
-    v_max_diff,
-    step_size_diff,
-    use_diverging=True,
-    cmap_name=cmap_diff_name,
+    df_demog[col2],
+    col2,
+    vmin_map2,
+    vmax_map2,
+    step_size_map2,
+    cmap_name=cmap_name_map2,
     cbar_title=cmap_titles[1],
     )
-
 
 
 # ----- Process geography for plotting -----

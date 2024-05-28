@@ -102,7 +102,7 @@ def set_up_colours(
 
     if cmap_name.endswith('_r_r'):
         # Remove the double reverse reverse.
-        cmap_name = cmap_name[:-2]
+        cmap_name = cmap_name[:-4]
 
     # Make a new column for the colours.
     v_bands = np.arange(v_min, v_max + step_size, step_size)
@@ -242,38 +242,99 @@ def make_colourbar_display_string(cmap_name, char_line='█', n_lines=20):
     return line_str
 
 
-def select_colour_maps(cmap_names, cmap_diff_names):
+def select_colour_maps(cmap_names):
     cmap_displays = [
         make_colourbar_display_string(cmap_name, char_line='█', n_lines=15)
         for cmap_name in cmap_names
         ]
-    cmap_diff_displays = [
-        make_colourbar_display_string(cmap_name, char_line='█', n_lines=15)
-        for cmap_name in cmap_diff_names
-        ]
 
     try:
         cmap_name = st.session_state['cmap_name']
-        cmap_diff_name = st.session_state['cmap_diff_name']
     except KeyError:
         cmap_name = cmap_names[0]
-        cmap_diff_name = cmap_diff_names[0]
     cmap_ind = cmap_names.index(cmap_name)
-    cmap_diff_ind = cmap_diff_names.index(cmap_diff_name)
 
     cmap_name = st.radio(
-        'Colour display for left-hand map',
+        'Colour display for map',
         cmap_names,
         captions=cmap_displays,
         index=cmap_ind,
-        key='cmap_name'
+        # key='cmap_name'
     )
 
-    cmap_diff_name = st.radio(
-        'Colour display for difference map',
-        cmap_diff_names,
-        captions=cmap_diff_displays,
-        index=cmap_diff_ind,
-        key='cmap_diff_name'
-    )
-    return cmap_name, cmap_diff_name
+    return cmap_name
+
+
+def lookup_colour_scale(col):
+    # For this column of data, use predefined colour bands.
+    # Comments are the actual vmin and vmax in the data.
+    all_colour_scale_dicts = {
+        'admissions': {
+            'vmin': 1,  # 0.0
+            'vmax': 6,  # 19.333...
+            'step_size': 1,
+        },
+        'closest_ivt_unit_time': {
+            'vmin': 15,  # 5.8
+            'vmax': 120,  # 74.5
+            'step_size': 15,
+        },
+        'closest_mt_unit_time': {
+            'vmin': 15,  # 5.8
+            'vmax': 120,  # 146.5
+            'step_size': 15,
+        },
+        'closest_mt_transfer_time': {
+            'vmin': 15,  # 0.0
+            'vmax': 120,  # 135.8
+            'step_size': 15,
+        },
+        'total_mt_time': {
+            'vmin': 15,  # 5.8
+            'vmax': 120,  # 198.5
+            'step_size': 15,
+        },
+        'ivt_rate': {
+            'vmin': 5,  # 1.9
+            'vmax': 25,  # 27.5
+            'step_size': 5,
+        },
+        'imd_2019_score': {
+            'vmin': 10,  # 0.5
+            'vmax': 90,  # 92.735
+            'step_size': 10,
+        },
+        'income_domain_score': {
+            'vmin': 0.2,  # 0.003
+            'vmax': 0.8,  # 0.644
+            'step_size': 0.1,
+        },
+        'idaci_score': {
+            'vmin': 0.2,  # 0.004
+            'vmax': 0.8,  # 0.898
+            'step_size': 0.1,
+        },
+        'idaopi_score': {
+            'vmin': 0.2,  # 0.006
+            'vmax': 0.8,  # 0.988
+            'step_size': 0.1,
+        },
+        }
+    try:
+        colour_scale_dict = all_colour_scale_dicts[col]
+    except KeyError:
+        if col.startswith('ethnic_group'):
+            # Assume data is scaled between 0 and 1.
+            colour_scale_dict = {
+                'vmin': 0.1,
+                'vmax': 0.4,
+                'step_size': 0.05,
+            }
+        else:
+            # Assume data is scaled between 0 and 1.
+            colour_scale_dict = {
+                'vmin': 0.1,
+                'vmax': 0.9,
+                'step_size': 0.1,
+            }
+    return colour_scale_dict

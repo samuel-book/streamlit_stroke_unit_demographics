@@ -21,6 +21,8 @@ def create_colour_gdf(
     """
     Main colour map creation function for Streamlit apps.
 
+    UPDATE ME
+
     Inputs
     ------
     _gdf_boundaries_msoa - geopandas.GeoDataFrame. Geometry info for
@@ -110,9 +112,13 @@ def assign_colour_bands_to_areas(
     if col_col is None:
         # Set all shifts to zero.
         df[col_col] = 0.0
-
-    # Only keep the required columns:
-    df = df[[col_col]]
+    else:
+        try:
+            # Only keep the required columns:
+            df = df[[col_col]]
+        except KeyError:
+            # Assume df is already a Series.
+            pass
 
     df_colours = pd.DataFrame(
         df.values,
