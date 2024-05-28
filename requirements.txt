@@ -1,9 +1,16 @@
-matplotlib==3.4.3
-numpy==1.22.3
-pandas==1.4.2
-scipy==1.7.3
-markdown==3.3.7
-pip==22.2.2
+cmasher
+geopandas==0.14.2
+matplotlib
+numpy
+pandas
+plotly
+pyproj
+pyyaml
+shapely==2.0.1
+statsmodels
+stroke-outcome
+stroke-maps
+# yaml is temporary - should have been included in stroke-maps package
 # Don't give a version for streamlit 
 # to ensure the app has the latest security updates. 
 streamlit
