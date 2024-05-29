@@ -24,6 +24,7 @@ from stroke_maps.catchment import Catchment
 import utilities.maps as maps
 import utilities.plot_maps as plot_maps
 import utilities.container_inputs as inputs
+from utilities.inputs import load_region_outlines
 
 
 # ###########################
@@ -117,6 +118,7 @@ with st.expander('Colour setup'):
         container_map1_cbar_setup = st.container()
     with cols[1]:
         container_map2_cbar_setup = st.container()
+container_region_outline_setup = st.container()
 
 with container_map1_cbar_setup:
     with st.form('Left map'):
@@ -173,6 +175,23 @@ with container_map2_cbar_setup:
             cmap_name_map2 = cmap_name_map2[:-4]
 
         submit_right = st.form_submit_button('Redraw right map')
+
+
+# Name of the column in the geojson that labels the shapes:
+with container_region_outline_setup:
+    outline_name = st.radio(
+        'Region type to draw on maps',
+        [
+            'None',
+            'Ambulance service',
+            'Closest IVT unit',
+            'Closest MT unit',
+            'Closest MT transfer',
+            'ICB (England) & LHB (Wales)',
+            'ISDN',
+            'LAD',
+        ]
+    )
 
 # Display names:
 subplot_titles = [col1, col2]
@@ -291,9 +310,19 @@ gdf_rhs, colour_diff_dict = maps.create_colour_gdf(
     )
 
 
+# ----- Region outlines -----
+if outline_name == 'None':
+    outline_names_col = None
+    gdf_catchment_lhs = None
+    gdf_catchment_rhs = None
+else:
+    outline_names_col, gdf_catchment_lhs, gdf_catchment_rhs = (
+        load_region_outlines(outline_name))
+
+
 # ----- Process geography for plotting -----
 # Convert gdf polygons to xy cartesian coordinates:
-gdfs_to_convert = [gdf_lhs, gdf_rhs]
+gdfs_to_convert = [gdf_lhs, gdf_rhs, gdf_catchment_lhs, gdf_catchment_rhs]
 for gdf in gdfs_to_convert:
     if gdf is None:
         pass
@@ -308,6 +337,10 @@ with container_maps:
     plot_maps.plotly_many_maps(
         gdf_lhs,
         gdf_rhs,
+        gdf_catchment_lhs=gdf_catchment_lhs,
+        gdf_catchment_rhs=gdf_catchment_rhs,
+        outline_names_col=outline_names_col,
+        outline_name=outline_name,
         subplot_titles=subplot_titles,
         colour_dict=colour_dict,
         colour_diff_dict=colour_diff_dict

@@ -194,13 +194,14 @@ def dissolve_polygons_by_value(
         # These can be used directly.
         selected_msoa = df_msoa_values[~mask_msoa_multi]
         # Load MSOA geometry:
-        path_to_msoa = os.path.join('data', 'outline_msoa11cds.geojson')
+        path_to_msoa = os.path.join('data', 'outline_msoa11cd.geojson')
         gdf_msoa = geopandas.read_file(path_to_msoa)
+        gdf_msoa = gdf_msoa.to_crs('EPSG:27700')
         # Columns: MSOA11CD, MSOA11NM, geometry.
         # Limit to only selected MSOA:
         gdf_msoa = pd.merge(
             gdf_msoa, selected_msoa,
-            left_on='MSOA11CD', right_on='msoa11cd', how='right'
+            left_on='msoa11cd', right_on='msoa11cd', how='right'
             )
         gdf_msoa = gdf_msoa[['geometry', col]]
 
@@ -211,8 +212,9 @@ def dissolve_polygons_by_value(
         # Find the LSOA that go into these MSOA:
         selected_lsoa = df_lsoa[mask_lsoa]
         # Load LSOA geometry:
-        path_to_lsoa = os.path.join('data', 'outline_lsoa11cds.geojson')
+        path_to_lsoa = os.path.join('data', 'outline_lsoa11cd.geojson')
         gdf_lsoa = geopandas.read_file(path_to_lsoa)
+        gdf_lsoa = gdf_lsoa.to_crs('EPSG:27700')
         # Columns: MSOA11CD, MSOA11NM, geometry.
         # Limit to only selected MSOA:
         gdf_lsoa = pd.merge(
@@ -226,8 +228,9 @@ def dissolve_polygons_by_value(
         gdf.index = range(len(gdf))
     else:
         # Load LSOA geometry:
-        path_to_lsoa = os.path.join('data', 'outline_lsoa11cds.geojson')
+        path_to_lsoa = os.path.join('data', 'outline_lsoa11cd.geojson')
         gdf = geopandas.read_file(path_to_lsoa)
+        gdf = gdf_lsoa.to_crs('EPSG:27700')
         # Merge in column:
         gdf = pd.merge(gdf, df_lsoa,
                        left_on='LSOA11NM', right_on='lsoa', how='right')

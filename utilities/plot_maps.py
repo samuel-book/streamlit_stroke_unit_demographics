@@ -142,8 +142,9 @@ def plotly_blank_maps(subplot_titles: list = None, n_blank: int = 2):
     subplot_titles - list or None. Titles for the subplots.
     n_blank        - int. How many subplots to create.
     """
-    path_to_file = os.path.join('data', 'outline_england.geojson')
+    path_to_file = os.path.join('data', 'outline_england_wales.geojson')
     gdf_ew = geopandas.read_file(path_to_file)
+    gdf_ew = gdf_ew.to_crs('EPSG:27700')
 
     x_list, y_list = convert_shapely_polys_into_xy(gdf_ew)
     gdf_ew['x'] = x_list
@@ -281,8 +282,9 @@ def plotly_many_maps(
         )
 
     # Add a blank outline of England:
-    path_to_file = os.path.join('data', 'outline_england.geojson')
+    path_to_file = os.path.join('data', 'outline_england_wales.geojson')
     gdf_ew = geopandas.read_file(path_to_file)
+    gdf_ew = gdf_ew.to_crs('EPSG:27700')
 
     x_list, y_list = convert_shapely_polys_into_xy(gdf_ew)
     gdf_ew['x'] = x_list
