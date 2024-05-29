@@ -556,3 +556,122 @@ def plotly_many_maps(
         use_container_width=True,
         config=plotly_config
         )
+
+
+def plot_hists(
+        df_demog, col1, col2,
+        vmin_map1, step_size_map1, vmax_map1,
+        vmin_map2, step_size_map2, vmax_map2,
+        subplot_titles=['', '']
+        ):
+    # How many regions are below the first bin (under)
+    # and above the last bin (over)?
+    n_under_map1 = len(np.where(df_demog[col1] < vmin_map1)[0])
+    n_over_map1 = len(np.where(df_demog[col1] >= vmax_map1)[0])
+    n_under_map2 = len(np.where(df_demog[col2] < vmin_map2)[0])
+    n_over_map2 = len(np.where(df_demog[col2] >= vmax_map2)[0])
+
+    fig = make_subplots(
+        rows=1, cols=2,
+        # horizontal_spacing=0.0,
+        # subplot_titles=subplot_titles
+        )
+
+    fig.add_trace(go.Histogram(
+        x=df_demog[col1],
+        xbins=dict(start=vmin_map1, size=step_size_map1, end=vmax_map1),
+        name=col1
+    ), row=1, col=1)
+
+    fig.add_trace(go.Histogram(
+        x=df_demog[col2],
+        xbins=dict(start=vmin_map2, size=step_size_map2, end=vmax_map2),
+        name=col2
+    ), row=1, col=2)
+
+    # Add space either side to match the colourbar above:
+    fig.update_layout(xaxis_range=[
+        vmin_map1 - step_size_map1, vmax_map1 + step_size_map1
+        ])
+    fig.update_layout(xaxis2_range=[
+        vmin_map2 - step_size_map2, vmax_map2 + step_size_map2
+        ])
+
+    # Add annotations in the space.
+    fig.add_annotation(
+        x=np.mean([vmin_map1, vmin_map1 - step_size_map1]),
+        y=0.0,
+        text=f'+{n_under_map1}<br>regions',
+        yshift=10,
+        showarrow=False,
+        row=1, col=1
+        )
+    fig.add_annotation(
+        x=np.mean([vmax_map1, vmax_map1 + step_size_map1]),
+        y=0.0,
+        text=f'+{n_over_map1}<br>regions',
+        yshift=10,
+        showarrow=False,
+        row=1, col=1
+        )
+    fig.add_annotation(
+        x=np.mean([vmin_map2, vmin_map2 - step_size_map2]),
+        y=0.0,
+        text=f'+{n_under_map2}<br>regions',
+        yshift=10,
+        showarrow=False,
+        row=1, col=2
+        )
+    fig.add_annotation(
+        x=np.mean([vmax_map2, vmax_map2 + step_size_map2]),
+        y=0.0,
+        text=f'+{n_over_map2}<br>regions',
+        yshift=10,
+        showarrow=False,
+        row=1, col=2
+        )
+
+    # Figure setup.
+    fig.update_layout(
+        # width=1200,
+        height=300,
+        margin_t=40,
+        margin_b=0
+        )
+    # Axis labels:
+    fig.update_layout(xaxis_title=subplot_titles[0])
+    fig.update_layout(yaxis_title='Number of regions')
+    fig.update_layout(xaxis2_title=subplot_titles[1])
+    fig.update_layout(yaxis2_title='Number of regions')
+
+    # Disable clicking legend to remove trace:
+    fig.update_layout(legend_itemclick=False)
+    fig.update_layout(legend_itemdoubleclick=False)
+
+    # Options for the mode bar.
+    # (which doesn't appear on touch devices.)
+    plotly_config = {
+        # Mode bar always visible:
+        # 'displayModeBar': True,
+        # Plotly logo in the mode bar:
+        'displaylogo': False,
+        # Remove the following from the mode bar:
+        'modeBarButtonsToRemove': [
+            # 'zoom',
+            # 'pan',
+            'select',
+            # 'zoomIn',
+            # 'zoomOut',
+            'autoScale',
+            'lasso2d'
+            ],
+        # Options when the image is saved:
+        'toImageButtonOptions': {'height': None, 'width': None},
+        }
+
+    # Write to streamlit:
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=plotly_config
+        )

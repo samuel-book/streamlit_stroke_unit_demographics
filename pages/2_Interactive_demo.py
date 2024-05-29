@@ -38,6 +38,7 @@ st.set_page_config(
     )
 
 container_maps = st.empty()
+container_hist = st.container()
 
 
 # Import the full travel time matrix:
@@ -344,4 +345,13 @@ with container_maps:
         subplot_titles=subplot_titles,
         colour_dict=colour_dict,
         colour_diff_dict=colour_diff_dict
+        )
+
+# ----- Histogram -----
+with container_hist:
+    plot_maps.plot_hists(
+        df_demog, col1, col2,
+        vmin_map1, step_size_map1, vmax_map1,
+        vmin_map2, step_size_map2, vmax_map2,
+        subplot_titles
         )
