@@ -37,6 +37,7 @@ st.set_page_config(
     layout='wide'
     )
 
+container_column_select = st.container()
 container_maps = st.empty()
 container_hist = st.container()
 
@@ -49,11 +50,8 @@ df_demog.index.name = 'lsoa'
 
 
 # TO DO - split off numerical data and region lookup data.
-# Make separate region files and allow option to plot them as outlines.
 
 # TO DO - make separate legend type for categorical data (e.g. rural-urban type)
-
-# TO DO - put Wales back into the LSOA and MSOA shapefiles.
 
 
 # #################################
@@ -80,7 +78,8 @@ cols_to_remove = [
 for c in cols_to_remove:
     cols_selectable.remove(c)
 
-cols = st.columns(2)
+with container_column_select:
+    cols = st.columns(2)
 with cols[0]:
     col1 = st.selectbox('Column 1', options=cols_selectable, index=1)
 with cols[1]:

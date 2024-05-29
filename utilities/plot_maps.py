@@ -603,7 +603,9 @@ def plot_hists(
             y=[hist_map1[i]],
             name=col1,
             width=step_size_map1,
-            marker=dict(color=bin_colours_map1[i+1])
+            marker=dict(color=bin_colours_map1[i+1]),
+            showlegend=False,
+            hoverinfo='y'
         ), row=1, col=1)
 
     for i in range(len(hist_map2)):
@@ -612,7 +614,9 @@ def plot_hists(
             y=[hist_map2[i]],
             name=col2,
             width=step_size_map2,
-            marker=dict(color=bin_colours_map2[i+1])
+            marker=dict(color=bin_colours_map2[i+1]),
+            showlegend=False,
+            hoverinfo='y'
         ), row=1, col=2)
 
     # Add space either side to match the colourbar above:
@@ -673,7 +677,17 @@ def plot_hists(
     fig.update_layout(yaxis_title='Number of regions')
     fig.update_layout(xaxis2_title=subplot_titles[1])
     fig.update_layout(yaxis2_title='Number of regions')
-
+    # Axis ticks to match colourbar ticks:
+    fig.update_layout(xaxis=dict(
+        tickmode='array',
+        tickvals=[vmin_map1 - step_size_map1, *list(bins_map1),
+                  vmax_map1 + step_size_map1]
+        ))
+    fig.update_layout(xaxis2=dict(
+        tickmode='array',
+        tickvals=[vmin_map2 - step_size_map2, *list(bins_map2),
+                  vmax_map2 + step_size_map2]
+        ))
     # Disable clicking legend to remove trace:
     fig.update_layout(legend_itemclick=False)
     fig.update_layout(legend_itemdoubleclick=False)
