@@ -560,16 +560,36 @@ def plotly_many_maps(
 
 def plot_hists(
         df_demog, col1, col2,
-        vmin_map1, step_size_map1, vmax_map1,
-        vmin_map2, step_size_map2, vmax_map2,
+        colour_dict_map1, colour_dict_map2,
         subplot_titles=['', '']
         ):
+    # Get variables out of the dictionaries:
+    vmin_map1 = colour_dict_map1['v_min']
+    step_size_map1 = colour_dict_map1['step_size']
+    vmax_map1 = colour_dict_map1['v_max']
+    vmin_map2 = colour_dict_map2['v_min']
+    step_size_map2 = colour_dict_map2['step_size']
+    vmax_map2 = colour_dict_map2['v_max']
+
+    bin_colours_map1 = list(colour_dict_map1['colour_map'].values())
+    bin_colours_map2 = list(colour_dict_map2['colour_map'].values())
+
+    # Calculate bin sizes:
+    hist_map1, bins_map1 = np.histogram(
+        df_demog[col1],
+        bins=np.arange(vmin_map1, vmax_map1+1, step_size_map1)
+        )
+    hist_map2, bins_map2 = np.histogram(
+        df_demog[col2],
+        bins=np.arange(vmin_map2, vmax_map2+1, step_size_map2)
+        )
+
     # How many regions are below the first bin (under)
     # and above the last bin (over)?
     n_under_map1 = len(np.where(df_demog[col1] < vmin_map1)[0])
-    n_over_map1 = len(np.where(df_demog[col1] >= vmax_map1)[0])
+    n_over_map1 = len(np.where(df_demog[col1] > vmax_map1)[0])
     n_under_map2 = len(np.where(df_demog[col2] < vmin_map2)[0])
-    n_over_map2 = len(np.where(df_demog[col2] >= vmax_map2)[0])
+    n_over_map2 = len(np.where(df_demog[col2] > vmax_map2)[0])
 
     fig = make_subplots(
         rows=1, cols=2,
@@ -577,17 +597,23 @@ def plot_hists(
         # subplot_titles=subplot_titles
         )
 
-    fig.add_trace(go.Histogram(
-        x=df_demog[col1],
-        xbins=dict(start=vmin_map1, size=step_size_map1, end=vmax_map1),
-        name=col1
-    ), row=1, col=1)
+    for i in range(len(hist_map1)):
+        fig.add_trace(go.Bar(
+            x=[bins_map1[i] + 0.5*step_size_map1],
+            y=[hist_map1[i]],
+            name=col1,
+            width=step_size_map1,
+            marker=dict(color=bin_colours_map1[i+1])
+        ), row=1, col=1)
 
-    fig.add_trace(go.Histogram(
-        x=df_demog[col2],
-        xbins=dict(start=vmin_map2, size=step_size_map2, end=vmax_map2),
-        name=col2
-    ), row=1, col=2)
+    for i in range(len(hist_map2)):
+        fig.add_trace(go.Bar(
+            x=[bins_map2[i] + 0.5*step_size_map2],
+            y=[hist_map2[i]],
+            name=col2,
+            width=step_size_map2,
+            marker=dict(color=bin_colours_map2[i+1])
+        ), row=1, col=2)
 
     # Add space either side to match the colourbar above:
     fig.update_layout(xaxis_range=[
@@ -604,6 +630,7 @@ def plot_hists(
         text=f'+{n_under_map1}<br>regions',
         yshift=10,
         showarrow=False,
+        bordercolor=bin_colours_map1[0],
         row=1, col=1
         )
     fig.add_annotation(
@@ -612,6 +639,7 @@ def plot_hists(
         text=f'+{n_over_map1}<br>regions',
         yshift=10,
         showarrow=False,
+        bordercolor=bin_colours_map1[-1],
         row=1, col=1
         )
     fig.add_annotation(
@@ -620,6 +648,7 @@ def plot_hists(
         text=f'+{n_under_map2}<br>regions',
         yshift=10,
         showarrow=False,
+        bordercolor=bin_colours_map2[0],
         row=1, col=2
         )
     fig.add_annotation(
@@ -628,6 +657,7 @@ def plot_hists(
         text=f'+{n_over_map2}<br>regions',
         yshift=10,
         showarrow=False,
+        bordercolor=bin_colours_map2[-1],
         row=1, col=2
         )
 

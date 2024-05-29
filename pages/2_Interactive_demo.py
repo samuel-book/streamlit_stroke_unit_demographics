@@ -291,7 +291,7 @@ st.write(df_demog)
 # ####################################
 # Keep this below the results above because the map creation is slow.
 
-gdf_lhs, colour_dict = maps.create_colour_gdf(
+gdf_lhs, colour_dict_map1 = maps.create_colour_gdf(
     df_demog[col1],
     col1,
     vmin_map1,
@@ -300,7 +300,7 @@ gdf_lhs, colour_dict = maps.create_colour_gdf(
     cmap_name=cmap_name_map1,
     cbar_title=cmap_titles[0],
     )
-gdf_rhs, colour_diff_dict = maps.create_colour_gdf(
+gdf_rhs, colour_dict_map2 = maps.create_colour_gdf(
     df_demog[col2],
     col2,
     vmin_map2,
@@ -343,15 +343,14 @@ with container_maps:
         outline_names_col=outline_names_col,
         outline_name=outline_name,
         subplot_titles=subplot_titles,
-        colour_dict=colour_dict,
-        colour_diff_dict=colour_diff_dict
+        colour_dict=colour_dict_map1,
+        colour_diff_dict=colour_dict_map2
         )
 
 # ----- Histogram -----
 with container_hist:
     plot_maps.plot_hists(
         df_demog, col1, col2,
-        vmin_map1, step_size_map1, vmax_map1,
-        vmin_map2, step_size_map2, vmax_map2,
+        colour_dict_map1, colour_dict_map2,
         subplot_titles
         )
