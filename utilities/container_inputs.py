@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt  # for colour maps
 import cmasher as cmr  # for additional colour maps
 from importlib_resources import files
+from plotly.express.colors import named_colorscales
 
 from stroke_maps.catchment import Catchment  # for unit services
 
@@ -98,6 +99,7 @@ def set_up_colours(
         use_diverging=False,
         cmap_name='inferno',
         v_name='v',
+        use_discrete=True
         ):
 
     if cmap_name.endswith('_r_r'):
@@ -153,12 +155,32 @@ def set_up_colours(
     # colour made between the defined colours),
     # double up the bounds so that colour A explicitly ends where
     # colour B starts.
-    colourscale = []
-    for i in range(len(colours)):
-        colourscale += [
-            [bounds_for_cs[i], colours[i]],
-            [bounds_for_cs[i+1], colours[i]]
-            ]
+    if use_discrete:
+        colourscale = []
+        for i in range(len(colours)):
+            colourscale += [
+                [bounds_for_cs[i], colours[i]],
+                [bounds_for_cs[i+1], colours[i]]
+                ]
+    else:
+        # Make a "continuous" colour map in the same way as before
+        # because plotly cannot access all cmaps and sometimes they
+        # differ from matplotlib (e.g. inferno gets a pink end).
+        colour_map_cont = make_colour_map_dict(
+            np.arange(100).astype(str), cmap_name)
+        colours_cont = list(colour_map_cont.values())
+        bounds_for_cs_cont = np.linspace(0.0, 1.0, len(colours_cont)+1)
+
+        colourscale = []
+        for i in range(len(colours_cont)):
+            colourscale += [
+                [bounds_for_cs_cont[i], colours_cont[i]],
+                [bounds_for_cs_cont[i+1], colours_cont[i]]
+                ]
+        # Remove the "to infinity" bits from bounds:
+        # v_bands = v_bands[1:-1]
+        # v_bands_str = v_bands_str[1:-1]
+        bounds_for_cs = np.linspace(0.0, 1.0, len(v_bands))#bounds_for_cs[1:-1]
 
     colour_dict = {
         'diverging': use_diverging,

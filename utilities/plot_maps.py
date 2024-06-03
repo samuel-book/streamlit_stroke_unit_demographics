@@ -244,7 +244,8 @@ def plotly_many_maps(
         subplot_titles: list = [],
         legend_title: str = '',
         colour_dict: dict = {},
-        colour_diff_dict: dict = {}
+        colour_diff_dict: dict = {},
+        use_discrete_cmap: bool = True
         ):
     """
     Main map-drawing function.
@@ -311,7 +312,7 @@ def plotly_many_maps(
     # but that will cause the colourbar of the colour scale to display.
     # Separate colour scales for the two maps.
 
-    def draw_dummy_scatter(fig, colour_dict, col=1, trace_name=''):
+    def draw_dummy_scatter(fig, colour_dict, col=1, trace_name='', use_discrete=True):
         # Dummy coordinates:
         # Isle of Man: 238844, 482858
         bonus_x = 238844
@@ -326,7 +327,11 @@ def plotly_many_maps(
         tick_locs = colour_dict['bounds_for_colour_scale']
 
         tick_names = [f'{t:.3f}' for t in colour_dict['v_bands']]
-        tick_names = ['←', *tick_names, '→']
+        if use_discrete:
+            tick_names = ['←', *tick_names, '→']
+        else:
+            # Budge along the first tick a bit so it isn't cut off.
+            tick_locs[0] += (tick_locs[1] - tick_locs[0]) * 0.2
 
         # Replace zeroish with zero:
         # (this is a visual difference only - it combines two near-zero
@@ -369,9 +374,9 @@ def plotly_many_maps(
 
         return fig
 
-    fig = draw_dummy_scatter(fig, colour_dict, col=1, trace_name='cbar')
+    fig = draw_dummy_scatter(fig, colour_dict, col=1, trace_name='cbar', use_discrete=use_discrete_cmap)
     fig = draw_dummy_scatter(fig, colour_diff_dict, col=2,
-                             trace_name='cbar_diff')
+                             trace_name='cbar_diff', use_discrete=use_discrete_cmap)
     fig.update_traces(
         {'marker': {'colorbar': {
             'orientation': 'h',
@@ -561,7 +566,8 @@ def plotly_many_maps(
 def plot_hists(
         df_demog, col1, col2,
         colour_dict_map1, colour_dict_map2,
-        subplot_titles=['', '']
+        subplot_titles=['', ''],
+        use_discrete_cmap=True
         ):
     # Get variables out of the dictionaries:
     vmin_map1 = colour_dict_map1['v_min']
@@ -573,15 +579,25 @@ def plot_hists(
 
     bin_colours_map1 = list(colour_dict_map1['colour_map'].values())
     bin_colours_map2 = list(colour_dict_map2['colour_map'].values())
+    if use_discrete_cmap:
+        pass
+    else:
+        # bin_colours_map1 = (
+        #     [bin_colours_map1[0]] + bin_colours_map1 + [bin_colours_map1[-1]])
+        # bin_colours_map2 = (
+        #     [bin_colours_map2[0]] + bin_colours_map2 + [bin_colours_map2[-1]])
+        # Overwrite - use same colour for all bins.
+        bin_colours_map1 = ['grey'] * (len(bin_colours_map1) + 2)
+        bin_colours_map2 = ['grey'] * (len(bin_colours_map2) + 2)
 
     # Calculate bin sizes:
     hist_map1, bins_map1 = np.histogram(
         df_demog[col1],
-        bins=np.arange(vmin_map1, vmax_map1+1, step_size_map1)
+        bins=np.arange(vmin_map1, vmax_map1+step_size_map1, step_size_map1)
         )
     hist_map2, bins_map2 = np.histogram(
         df_demog[col2],
-        bins=np.arange(vmin_map2, vmax_map2+1, step_size_map2)
+        bins=np.arange(vmin_map2, vmax_map2+step_size_map2, step_size_map2)
         )
 
     # How many regions are below the first bin (under)

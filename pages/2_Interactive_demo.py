@@ -40,18 +40,53 @@ st.set_page_config(
 container_column_select = st.container()
 container_maps = st.empty()
 container_hist = st.container()
+# Inputs for overwriting default colourbars:
+with st.expander('Colour setup'):
+    cols = st.columns(2)
+    with cols[0]:
+        container_map1_cbar_setup = st.container()
+    with cols[1]:
+        container_map2_cbar_setup = st.container()
+with st.sidebar:
+    container_region_outline_setup = st.container()
+with st.expander('Full data table'):
+    container_data_table = st.container()
 
+# Pick the region type to plot:
+region_type_dict = {
+    'Ambulance service': 'ambulance_service',
+    'Closest IVT unit': 'closest_ivt_unit',
+    'Closest MT unit': 'closest_mt_unit',
+    'Closest transfer unit for MT': 'closest_mt_transfer',
+    'ICB (England) & LHB (Wales)': 'icb_lhb',
+    # 'Integrated Care Board (England only)': 'icb_code',
+    # 'Local Health Board (Wales only)': 'lhb',
+    'Integrated Stroke Delivery Network (England only)': 'isdn',
+    # 'Local Authority District': 'LAD22NM',
+    'LSOA': 'LSOA',
+}
+with st.sidebar:
+    region_type_str = st.selectbox(
+        'Group data at this level', region_type_dict.keys())
+region_type = region_type_dict[region_type_str]
 
 # Import the full travel time matrix:
 df_demog = pd.read_csv(
-    './data/collated_data_amb.csv', index_col='LSOA')
-# Rename index to 'lsoa':
-df_demog.index.name = 'lsoa'
+    f'./data/collated_data_regional_{region_type}.csv', index_col=0)
+
+with container_data_table:
+    st.dataframe(df_demog)
+
+if 'region_type' == 'LSOA':
+    # Rename index to 'lsoa':
+    df_demog.index.name = 'lsoa'
 
 
-# TO DO - split off numerical data and region lookup data.
+# TO DO - does it make sense to attempt an admissions-weighted IVT rate? I think not.
 
-# TO DO - make separate legend type for categorical data (e.g. rural-urban type)
+
+# TO DO - stick the histograms in the same set of subplots as the maps
+# to see if the sizing lines up nicely (colourbar bands match histogram bins).
 
 
 # #################################
@@ -59,24 +94,24 @@ df_demog.index.name = 'lsoa'
 # #################################
 
 cols_selectable = list(df_demog.columns)
-cols_to_remove = [
-    'income_domain_rank',
-    'idaci_rank',
-    'idaopi_rank',
-    'closest_ivt_unit',
-    'closest_mt_unit',
-    'closest_mt_transfer',
-    'la_district_name_2019',
-    'rural_urban_2011',
-    'ambulance_service',
-    'local_authority_district_22',
-    'LAD22NM',
-    'country',
-    'ethnic_group_all_categories_ethnic_group',
-    'all_categories_general_health'
-]
-for c in cols_to_remove:
-    cols_selectable.remove(c)
+# cols_to_remove = [
+#     'income_domain_rank',
+#     'idaci_rank',
+#     'idaopi_rank',
+#     'closest_ivt_unit',
+#     'closest_mt_unit',
+#     'closest_mt_transfer',
+#     'la_district_name_2019',
+#     'rural_urban_2011',
+#     'ambulance_service',
+#     'local_authority_district_22',
+#     'LAD22NM',
+#     'country',
+#     'ethnic_group_all_categories_ethnic_group',
+#     'all_categories_general_health'
+# ]
+# for c in cols_to_remove:
+#     cols_selectable.remove(c)
 
 with container_column_select:
     cols = st.columns(2)
@@ -100,25 +135,9 @@ cmap_displays = [
     for cmap_name in cmap_names
     ]
 
-# v_min = np.min(df_data[col1])
-# v_max = np.max(df_data[col1])
-# step_size = (v_max - v_min) * (1.0/5.0)
-
-# v_min_diff = np.min(df_data[col2])
-# v_max_diff = np.max(df_data[col2])
-# step_size_diff = (v_max_diff - v_min_diff) * (1.0/5.0)
-
 col1_colour_scale_dict = inputs.lookup_colour_scale(col1)
 col2_colour_scale_dict = inputs.lookup_colour_scale(col2)
 
-# Inputs for overwriting default colourbars:
-with st.expander('Colour setup'):
-    cols = st.columns(2)
-    with cols[0]:
-        container_map1_cbar_setup = st.container()
-    with cols[1]:
-        container_map2_cbar_setup = st.container()
-container_region_outline_setup = st.container()
 
 with container_map1_cbar_setup:
     with st.form('Left map'):
@@ -189,7 +208,7 @@ with container_region_outline_setup:
             'Closest MT transfer',
             'ICB (England) & LHB (Wales)',
             'ISDN',
-            'LAD',
+            # 'LAD',
         ]
     )
 
@@ -216,72 +235,70 @@ with container_maps:
 # df_demog = df_demog.drop(cols_to_remove, axis='columns')
 
 
-# DO THIS JUST ONCE IN ADVANCE AND SAVE RESULTS? TO DO -----------------------------------------------
+# # DO THIS JUST ONCE IN ADVANCE AND SAVE RESULTS? TO DO -----------------------------------------------
 
-cols_to_scale = [c for c in df_demog.columns if (
-    (
-        # (c.startswith('ethnic_group')) |
-        # (c.endswith('health')) |
-        # (c.startswith('day_to_day_activities')) |
-        (c.startswith('age_band_all'))
-    )
-    )]
-# # Stuff that's hard to pick out with conditions:
-# cols_to_scale += [
-#     'all_categories_long_term_health_problem_or_disability',
-#     ]
-df_demog[cols_to_scale] = df_demog[cols_to_scale].astype(float)
-df_demog.loc[:, cols_to_scale] = (
-    df_demog.loc[:, cols_to_scale].div(
-        df_demog['population_all'], axis=0))
+# cols_to_scale = [c for c in df_demog.columns if (
+#     (
+#         # (c.startswith('ethnic_group')) |
+#         # (c.endswith('health')) |
+#         # (c.startswith('day_to_day_activities')) |
+#         (c.startswith('age_band_all'))
+#     )
+#     )]
+# # # Stuff that's hard to pick out with conditions:
+# # cols_to_scale += [
+# #     'all_categories_long_term_health_problem_or_disability',
+# #     ]
+# df_demog[cols_to_scale] = df_demog[cols_to_scale].astype(float)
+# df_demog.loc[:, cols_to_scale] = (
+#     df_demog.loc[:, cols_to_scale].div(
+#         df_demog['population_all'], axis=0))
 
-cols_ethnic = [c for c in df_demog.columns if c.startswith('ethnic_group')]
-cols_ethnic.remove('ethnic_group_all_categories_ethnic_group')
-df_demog[cols_ethnic] = df_demog[cols_ethnic].astype(float)
-df_demog.loc[:, cols_ethnic] = (
-    df_demog.loc[:, cols_ethnic].div(
-        df_demog['ethnic_group_all_categories_ethnic_group'], axis=0))
+# cols_ethnic = [c for c in df_demog.columns if c.startswith('ethnic_group')]
+# cols_ethnic.remove('ethnic_group_all_categories_ethnic_group')
+# df_demog[cols_ethnic] = df_demog[cols_ethnic].astype(float)
+# df_demog.loc[:, cols_ethnic] = (
+#     df_demog.loc[:, cols_ethnic].div(
+#         df_demog['ethnic_group_all_categories_ethnic_group'], axis=0))
 
-cols_activities = [c for c in df_demog.columns if c.startswith('day_to_day')]
-# cols_activities.remove('all_categories_long_term_health_problem_or_disability')
-df_demog[cols_activities] = df_demog[cols_activities].astype(float)
-df_demog.loc[:, cols_activities] = (
-    df_demog.loc[:, cols_activities].div(
-        df_demog['all_categories_long_term_health_problem_or_disability'],
-        axis=0))
+# cols_activities = [c for c in df_demog.columns if c.startswith('day_to_day')]
+# # cols_activities.remove('all_categories_long_term_health_problem_or_disability')
+# df_demog[cols_activities] = df_demog[cols_activities].astype(float)
+# df_demog.loc[:, cols_activities] = (
+#     df_demog.loc[:, cols_activities].div(
+#         df_demog['all_categories_long_term_health_problem_or_disability'],
+#         axis=0))
 
 
-cols_health = [c for c in df_demog.columns if c.endswith('health')]
-cols_health.remove('all_categories_general_health')
-df_demog[cols_health] = df_demog[cols_health].astype(float)
-df_demog.loc[:, cols_health] = (
-    df_demog.loc[:, cols_health].div(
-        df_demog['all_categories_general_health'], axis=0))
+# cols_health = [c for c in df_demog.columns if c.endswith('health')]
+# cols_health.remove('all_categories_general_health')
+# df_demog[cols_health] = df_demog[cols_health].astype(float)
+# df_demog.loc[:, cols_health] = (
+#     df_demog.loc[:, cols_health].div(
+#         df_demog['all_categories_general_health'], axis=0))
 
-cols_female = [c for c in df_demog.columns if (
-    ('females' in c) & (c.startswith('population') is False)
-    )]
-df_demog[cols_female] = df_demog[cols_female].astype(float)
-df_demog.loc[:, cols_female] = (
-    df_demog.loc[:, cols_female].div(
-        df_demog['population_females'], axis=0))
+# cols_female = [c for c in df_demog.columns if (
+#     ('females' in c) & (c.startswith('population') is False)
+#     )]
+# df_demog[cols_female] = df_demog[cols_female].astype(float)
+# df_demog.loc[:, cols_female] = (
+#     df_demog.loc[:, cols_female].div(
+#         df_demog['population_females'], axis=0))
 
-cols_male = [c for c in df_demog.columns if (
-    ('_males' in c) & (c.startswith('population') is False)
-    )]
-df_demog[cols_male] = df_demog[cols_male].astype(float)
-df_demog.loc[:, cols_male] = (
-    df_demog.loc[:, cols_male].div(
-        df_demog['population_males'], axis=0))
+# cols_male = [c for c in df_demog.columns if (
+#     ('_males' in c) & (c.startswith('population') is False)
+#     )]
+# df_demog[cols_male] = df_demog[cols_male].astype(float)
+# df_demog.loc[:, cols_male] = (
+#     df_demog.loc[:, cols_male].div(
+#         df_demog['population_males'], axis=0))
 
-st.write(df_demog)
-
-# for col in df_demog.columns:
-#     try:
-#         st.write(col, np.min(df_demog[col]), np.max(df_demog[col]))
-#     except TypeError:
-#         pass
-# # st.stop()
+# # for col in df_demog.columns:
+# #     try:
+# #         st.write(col, np.min(df_demog[col]), np.max(df_demog[col]))
+# #     except TypeError:
+# #         pass
+# # # st.stop()
 
 
 
@@ -289,6 +306,9 @@ st.write(df_demog)
 # ########## SETUP FOR MAPS ##########
 # ####################################
 # Keep this below the results above because the map creation is slow.
+
+merge_polygons_bool = True if region_type == 'LSOA' else False
+use_discrete_cmap = True if region_type == 'LSOA' else False
 
 gdf_lhs, colour_dict_map1 = maps.create_colour_gdf(
     df_demog[col1],
@@ -298,6 +318,9 @@ gdf_lhs, colour_dict_map1 = maps.create_colour_gdf(
     step_size_map1,
     cmap_name=cmap_name_map1,
     cbar_title=cmap_titles[0],
+    merge_polygons_bool=merge_polygons_bool,
+    region_type=region_type,
+    use_discrete_cmap=use_discrete_cmap
     )
 gdf_rhs, colour_dict_map2 = maps.create_colour_gdf(
     df_demog[col2],
@@ -307,8 +330,10 @@ gdf_rhs, colour_dict_map2 = maps.create_colour_gdf(
     step_size_map2,
     cmap_name=cmap_name_map2,
     cbar_title=cmap_titles[1],
+    merge_polygons_bool=merge_polygons_bool,
+    region_type=region_type,
+    use_discrete_cmap=use_discrete_cmap
     )
-
 
 # ----- Region outlines -----
 if outline_name == 'None':
@@ -343,7 +368,8 @@ with container_maps:
         outline_name=outline_name,
         subplot_titles=subplot_titles,
         colour_dict=colour_dict_map1,
-        colour_diff_dict=colour_dict_map2
+        colour_diff_dict=colour_dict_map2,
+        use_discrete_cmap=use_discrete_cmap
         )
 
 # ----- Histogram -----
@@ -351,5 +377,6 @@ with container_hist:
     plot_maps.plot_hists(
         df_demog, col1, col2,
         colour_dict_map1, colour_dict_map2,
-        subplot_titles
+        subplot_titles,
+        use_discrete_cmap=use_discrete_cmap
         )

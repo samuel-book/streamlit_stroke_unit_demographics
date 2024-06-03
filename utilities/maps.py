@@ -17,6 +17,9 @@ def create_colour_gdf(
         use_diverging=False,
         cmap_name: str = '',
         cbar_title: str = '',
+        merge_polygons_bool=True,
+        region_type='',
+        use_discrete_cmap=True
         ):
     """
     Main colour map creation function for Streamlit apps.
@@ -57,6 +60,7 @@ def create_colour_gdf(
         step_size,
         use_diverging,
         cmap_name=cmap_name,
+        use_discrete=use_discrete_cmap
         )
     # Pull down colourbar titles from earlier in this script:
     colour_dict['title'] = cbar_title
@@ -72,14 +76,60 @@ def create_colour_gdf(
         colour_dict['v_bands'],
         colour_dict['v_bands_str']
         )
-    # For each colour scale and data column combo,
-    # merge polygons that fall into the same colour band.
-    gdf = dissolve_polygons_by_value(
-        df_colours.copy().reset_index()[['lsoa', 'colour_str']],
-        col='colour_str'
+    if merge_polygons_bool:
+        # For each colour scale and data column combo,
+        # merge polygons that fall into the same colour band.
+        gdf = dissolve_polygons_by_value(
+            df_colours.copy().reset_index()[['lsoa', 'colour_str']],
+            col='colour_str'
+            )
+    else:
+        # Load in GeoDataFrame:
+        path_to_lsoa = os.path.join('data', f'outline_{region_type}.geojson')
+        gdf = geopandas.read_file(path_to_lsoa)
+        gdf = gdf.set_index(region_type)
+        # Merge in column:
+        gdf = pd.merge(gdf, df_colours,
+                       left_index=True, right_index=True, how='right')
+        gdf = gdf.reset_index()
+        gdf.index = range(len(gdf))
+
+    # Convert to British National Grid:
+    gdf = gdf.to_crs('EPSG:27700')
+
+    # Make geometry valid:
+    gdf['geometry'] = [
+        make_valid(g) if g is not None else g
+        for g in gdf['geometry'].values
+        ]
+
+    if use_discrete_cmap:
+        # Map the colours to the colour names:
+        gdf = assign_colour_to_areas(gdf, colour_dict['colour_map'])
+    else:
+        # Map the colours to the outcome values:
+        # Normalise outcomes along a linear scale from vmin to vmax:
+        gdf['outcome_norm'] = (
+            (gdf['outcome'] - colour_dict['v_min']) /
+            (colour_dict['v_max'] - colour_dict['v_min'])
         )
-    # Map the colours to the colour names:
-    gdf = assign_colour_to_areas(gdf, colour_dict['colour_map'])
+        # Clip values to within 0 to 1 range:
+        gdf.loc[gdf['outcome_norm'] < 0, 'outcome_norm'] = 0.0
+        gdf.loc[gdf['outcome_norm'] > 1, 'outcome_norm'] = 1.0
+        # Import cmap:
+        import matplotlib.pyplot as plt
+        try:
+            # Matplotlib colourmap:
+            cmap = plt.get_cmap(cmap_name)
+        except ValueError:
+            # CMasher colourmap:
+            cmap = plt.get_cmap(f'cmr.{cmap_name}')
+        colour_list = cmap(gdf['outcome_norm'])
+        # # Convert tuples to strings:
+        colour_list = np.array([
+            f'rgba{tuple(c)}' for c in colour_list])
+        # Assign colours from the cmap:
+        gdf['colour'] = colour_list
 
     return gdf, colour_dict
 
