@@ -405,7 +405,18 @@ def plotly_many_maps(
     # Add each row of the dataframe separately.
     # Scatter the edges of the polygons and use "fill" to colour
     # within the lines.
+    # I can't get hoverlabels working for the life of me so
+    # use 'text' param instead.
+    show_hoverinfo = 'skip' if use_discrete_cmap else None
+    name_col = 'colour_str' if use_discrete_cmap else gdf_lhs.columns[0]
+
     for i in gdf_lhs.index:
+        try:
+            val = gdf_lhs.at[i, 'outcome']
+        except KeyError:
+            # 'outcome' column doesn't exist
+            val = ''
+
         fig.add_trace(go.Scatter(
             x=gdf_lhs.loc[i, 'x'],
             y=gdf_lhs.loc[i, 'y'],
@@ -413,13 +424,19 @@ def plotly_many_maps(
             fill="toself",
             fillcolor=gdf_lhs.loc[i, 'colour'],
             line_width=0,
-            hoverinfo='skip',
-            name=gdf_lhs.loc[i, 'colour_str'],
-            showlegend=False
+            text=f'{val}',
+            hoverinfo=show_hoverinfo,
+            name=gdf_lhs.loc[i, name_col],
+            showlegend=False,
             ), row='all', col=1
             )
 
     for i in gdf_rhs.index:
+        try:
+            val = gdf_rhs.at[i, 'outcome']
+        except KeyError:
+            # 'outcome' column doesn't exist
+            val = ''
         fig.add_trace(go.Scatter(
             x=gdf_rhs.loc[i, 'x'],
             y=gdf_rhs.loc[i, 'y'],
@@ -427,8 +444,9 @@ def plotly_many_maps(
             fill="toself",
             fillcolor=gdf_rhs.loc[i, 'colour'],
             line_width=0,
-            hoverinfo='skip',
-            name=gdf_rhs.loc[i, 'colour_str'],
+            text=f'{val}',
+            hoverinfo=show_hoverinfo,
+            name=gdf_rhs.loc[i, name_col],
             showlegend=False
             ), row='all', col=2
             )
@@ -619,7 +637,8 @@ def plot_hists(
             y=[hist_map1[i]],
             name=col1,
             width=step_size_map1,
-            marker=dict(color=bin_colours_map1[i+1]),
+            marker=dict(color=bin_colours_map1[i+1],
+                        line=dict(color='silver', width=1)),
             showlegend=False,
             hoverinfo='y'
         ), row=1, col=1)
@@ -630,7 +649,8 @@ def plot_hists(
             y=[hist_map2[i]],
             name=col2,
             width=step_size_map2,
-            marker=dict(color=bin_colours_map2[i+1]),
+            marker=dict(color=bin_colours_map2[i+1],
+                        line=dict(color='silver', width=1)),
             showlegend=False,
             hoverinfo='y'
         ), row=1, col=2)

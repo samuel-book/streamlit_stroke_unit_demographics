@@ -48,10 +48,13 @@ with st.expander('Colour setup'):
     with cols[1]:
         container_map2_cbar_setup = st.container()
 with st.sidebar:
+    container_region_select = st.container()
     container_region_outline_setup = st.container()
 with st.expander('Full data table'):
     container_data_table = st.container()
 
+
+# --- Import demographic data ---
 # Pick the region type to plot:
 region_type_dict = {
     'Ambulance service': 'ambulance_service',
@@ -65,7 +68,7 @@ region_type_dict = {
     # 'Local Authority District': 'LAD22NM',
     'LSOA': 'LSOA',
 }
-with st.sidebar:
+with container_region_select:
     region_type_str = st.selectbox(
         'Group data at this level', region_type_dict.keys())
 region_type = region_type_dict[region_type_str]
@@ -77,10 +80,11 @@ df_demog = pd.read_csv(
 with container_data_table:
     st.dataframe(df_demog)
 
-if 'region_type' == 'LSOA':
+if region_type == 'LSOA':
     # Rename index to 'lsoa':
     df_demog.index.name = 'lsoa'
 
+# TO DO - show stroke unit locations
 
 # TO DO - does it make sense to attempt an admissions-weighted IVT rate? I think not.
 
@@ -94,31 +98,13 @@ if 'region_type' == 'LSOA':
 # #################################
 
 cols_selectable = list(df_demog.columns)
-# cols_to_remove = [
-#     'income_domain_rank',
-#     'idaci_rank',
-#     'idaopi_rank',
-#     'closest_ivt_unit',
-#     'closest_mt_unit',
-#     'closest_mt_transfer',
-#     'la_district_name_2019',
-#     'rural_urban_2011',
-#     'ambulance_service',
-#     'local_authority_district_22',
-#     'LAD22NM',
-#     'country',
-#     'ethnic_group_all_categories_ethnic_group',
-#     'all_categories_general_health'
-# ]
-# for c in cols_to_remove:
-#     cols_selectable.remove(c)
 
 with container_column_select:
     cols = st.columns(2)
 with cols[0]:
-    col1 = st.selectbox('Column 1', options=cols_selectable, index=1)
+    col1 = st.selectbox('Data for left map', options=cols_selectable, index=1)
 with cols[1]:
-    col2 = st.selectbox('Column 2', options=cols_selectable, index=2)
+    col2 = st.selectbox('Data for right map', options=cols_selectable, index=2)
 
 
 # User inputs for which hospitals to pick:
@@ -135,8 +121,8 @@ cmap_displays = [
     for cmap_name in cmap_names
     ]
 
-col1_colour_scale_dict = inputs.lookup_colour_scale(col1)
-col2_colour_scale_dict = inputs.lookup_colour_scale(col2)
+col1_colour_scale_dict = inputs.lookup_colour_scale(col1, df_demog[col1])
+col2_colour_scale_dict = inputs.lookup_colour_scale(col2, df_demog[col2])
 
 
 with container_map1_cbar_setup:
@@ -226,82 +212,6 @@ with container_maps:
     plot_maps.plotly_blank_maps(['', ''], n_blank=2)
 
 
-# # Remove some data that doesn't look useful here:
-# cols_to_remove = [
-#     'income_domain_rank',
-#     'idaci_rank',
-#     'idaopi_rank'
-# ]
-# df_demog = df_demog.drop(cols_to_remove, axis='columns')
-
-
-# # DO THIS JUST ONCE IN ADVANCE AND SAVE RESULTS? TO DO -----------------------------------------------
-
-# cols_to_scale = [c for c in df_demog.columns if (
-#     (
-#         # (c.startswith('ethnic_group')) |
-#         # (c.endswith('health')) |
-#         # (c.startswith('day_to_day_activities')) |
-#         (c.startswith('age_band_all'))
-#     )
-#     )]
-# # # Stuff that's hard to pick out with conditions:
-# # cols_to_scale += [
-# #     'all_categories_long_term_health_problem_or_disability',
-# #     ]
-# df_demog[cols_to_scale] = df_demog[cols_to_scale].astype(float)
-# df_demog.loc[:, cols_to_scale] = (
-#     df_demog.loc[:, cols_to_scale].div(
-#         df_demog['population_all'], axis=0))
-
-# cols_ethnic = [c for c in df_demog.columns if c.startswith('ethnic_group')]
-# cols_ethnic.remove('ethnic_group_all_categories_ethnic_group')
-# df_demog[cols_ethnic] = df_demog[cols_ethnic].astype(float)
-# df_demog.loc[:, cols_ethnic] = (
-#     df_demog.loc[:, cols_ethnic].div(
-#         df_demog['ethnic_group_all_categories_ethnic_group'], axis=0))
-
-# cols_activities = [c for c in df_demog.columns if c.startswith('day_to_day')]
-# # cols_activities.remove('all_categories_long_term_health_problem_or_disability')
-# df_demog[cols_activities] = df_demog[cols_activities].astype(float)
-# df_demog.loc[:, cols_activities] = (
-#     df_demog.loc[:, cols_activities].div(
-#         df_demog['all_categories_long_term_health_problem_or_disability'],
-#         axis=0))
-
-
-# cols_health = [c for c in df_demog.columns if c.endswith('health')]
-# cols_health.remove('all_categories_general_health')
-# df_demog[cols_health] = df_demog[cols_health].astype(float)
-# df_demog.loc[:, cols_health] = (
-#     df_demog.loc[:, cols_health].div(
-#         df_demog['all_categories_general_health'], axis=0))
-
-# cols_female = [c for c in df_demog.columns if (
-#     ('females' in c) & (c.startswith('population') is False)
-#     )]
-# df_demog[cols_female] = df_demog[cols_female].astype(float)
-# df_demog.loc[:, cols_female] = (
-#     df_demog.loc[:, cols_female].div(
-#         df_demog['population_females'], axis=0))
-
-# cols_male = [c for c in df_demog.columns if (
-#     ('_males' in c) & (c.startswith('population') is False)
-#     )]
-# df_demog[cols_male] = df_demog[cols_male].astype(float)
-# df_demog.loc[:, cols_male] = (
-#     df_demog.loc[:, cols_male].div(
-#         df_demog['population_males'], axis=0))
-
-# # for col in df_demog.columns:
-# #     try:
-# #         st.write(col, np.min(df_demog[col]), np.max(df_demog[col]))
-# #     except TypeError:
-# #         pass
-# # # st.stop()
-
-
-
 # ####################################
 # ########## SETUP FOR MAPS ##########
 # ####################################
@@ -355,7 +265,6 @@ for gdf in gdfs_to_convert:
         x_list, y_list = maps.convert_shapely_polys_into_xy(gdf)
         gdf['x'] = x_list
         gdf['y'] = y_list
-
 
 # ----- Plot -----
 with container_maps:

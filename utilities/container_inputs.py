@@ -7,8 +7,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt  # for colour maps
 import cmasher as cmr  # for additional colour maps
-from importlib_resources import files
-from plotly.express.colors import named_colorscales
+# from importlib_resources import files
+# from plotly.express.colors import named_colorscales
+from math import log10, floor
 
 from stroke_maps.catchment import Catchment  # for unit services
 
@@ -287,76 +288,31 @@ def select_colour_maps(cmap_names):
     return cmap_name
 
 
-def lookup_colour_scale(col):
+def lookup_colour_scale(col, values):
     # For this column of data, use predefined colour bands.
-    # Comments are the actual vmin and vmax in the data.
-    all_colour_scale_dicts = {
-        'admissions': {
-            'vmin': 1,  # 0.0
-            'vmax': 6,  # 19.333...
-            'step_size': 1,
-        },
-        'closest_ivt_unit_time': {
-            'vmin': 15,  # 5.8
-            'vmax': 120,  # 74.5
-            'step_size': 15,
-        },
-        'closest_mt_unit_time': {
-            'vmin': 15,  # 5.8
-            'vmax': 120,  # 146.5
-            'step_size': 15,
-        },
-        'closest_mt_transfer_time': {
-            'vmin': 15,  # 0.0
-            'vmax': 120,  # 135.8
-            'step_size': 15,
-        },
-        'total_mt_time': {
-            'vmin': 15,  # 5.8
-            'vmax': 120,  # 198.5
-            'step_size': 15,
-        },
-        'ivt_rate': {
-            'vmin': 5,  # 1.9
-            'vmax': 25,  # 27.5
-            'step_size': 5,
-        },
-        'imd_2019_score': {
-            'vmin': 10,  # 0.5
-            'vmax': 90,  # 92.735
-            'step_size': 10,
-        },
-        'income_domain_score': {
-            'vmin': 0.2,  # 0.003
-            'vmax': 0.8,  # 0.644
+    if 'prop' in col:
+        # Assume data is scaled between 0 and 1.
+        colour_scale_dict = {
+            'vmin': 0.1,
+            'vmax': 0.9,
             'step_size': 0.1,
-        },
-        'idaci_score': {
-            'vmin': 0.2,  # 0.004
-            'vmax': 0.8,  # 0.898
-            'step_size': 0.1,
-        },
-        'idaopi_score': {
-            'vmin': 0.2,  # 0.006
-            'vmax': 0.8,  # 0.988
-            'step_size': 0.1,
-        },
         }
-    try:
-        colour_scale_dict = all_colour_scale_dicts[col]
-    except KeyError:
-        if col.startswith('ethnic_group'):
-            # Assume data is scaled between 0 and 1.
-            colour_scale_dict = {
-                'vmin': 0.1,
-                'vmax': 0.4,
-                'step_size': 0.05,
-            }
-        else:
-            # Assume data is scaled between 0 and 1.
-            colour_scale_dict = {
-                'vmin': 0.1,
-                'vmax': 0.9,
-                'step_size': 0.1,
-            }
+    else:
+        # Show near enough the full range of values.
+        # d_min = values.min()
+        d_max = values.max()
+
+        # Anchor the min value at zero for now:
+        n_edges = 7
+        bin_edges = np.linspace(0.0, d_max, n_edges)
+        d_step_size = bin_edges[1] - bin_edges[0]
+        # Round this step size to something more round:
+        # (stackoverflow https://stackoverflow.com/a/3411435)
+        step_size = round(d_step_size, -int(floor(log10(abs(d_step_size)))))
+
+        colour_scale_dict = {
+            'vmin': step_size,
+            'vmax': step_size * (n_edges - 1),
+            'step_size': step_size,
+        }
     return colour_scale_dict
