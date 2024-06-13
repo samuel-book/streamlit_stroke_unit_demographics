@@ -83,6 +83,19 @@ region_type = region_type_dict[region_type_str]
 df_demog = pd.read_csv(
     f'./data/collated_data_regional_{region_type}.csv', index_col=0)
 
+# Stroke unit info:
+catchment = Catchment()
+df_units = catchment.get_unit_services()
+
+if (('_ivt_' in region_type) | ('_mt_' in region_type)):
+    # The data is saved with stroke unit postcodes as the only
+    # identifier. Load in a postcode-name lookup for display.
+    cols_to_merge = ['stroke_team', 'ssnap_name']
+    df_demog = pd.merge(
+        df_units[cols_to_merge], df_demog,
+        left_index=True, right_index=True, how='right'
+        )
+
 with container_data_table:
     st.dataframe(df_demog)
 
@@ -90,8 +103,6 @@ if region_type == 'LSOA':
     # Rename index to 'lsoa':
     df_demog.index.name = 'lsoa'
 
-# TO DO - remove repeat population_all column
-# TO DO - fix column names with missing characters
 
 # TO DO - add pretty text explanation of column names, not just the obscure names
 
@@ -104,9 +115,6 @@ if region_type == 'LSOA':
 # TO DO - print means, stds etc across all regions.
 
 # TO DO - show stroke unit locations
-
-# TO DO - does it make sense to attempt an admissions-weighted IVT rate? I think not.
-
 
 # TO DO - stick the histograms in the same set of subplots as the maps
 # to see if the sizing lines up nicely (colourbar bands match histogram bins).
@@ -134,7 +142,8 @@ cols_abs = [
     'closest_is_mt_False',
     'closest_is_mt_True'
 ]
-cols_to_remove = ['polygon_area_km2'] + cols_abs
+cols_unit_names = ['stroke_team', 'ssnap_name']
+cols_to_remove = ['polygon_area_km2'] + cols_abs + cols_unit_names
 cols_selectable = [c for c in cols_selectable if c not in cols_to_remove]
 
 with container_column_select:
@@ -143,11 +152,6 @@ with cols[0]:
     col1 = st.selectbox('Data for left map', options=cols_selectable, index=0)
 with cols[1]:
     col2 = st.selectbox('Data for right map', options=cols_selectable, index=1)
-
-
-# User inputs for which hospitals to pick:
-catchment = Catchment()
-df_units = catchment.get_unit_services()
 
 
 # Colourmap selection
@@ -333,6 +337,18 @@ for gdf in gdfs_to_convert:
         x_list, y_list = maps.convert_shapely_polys_into_xy(gdf)
         gdf['x'] = x_list
         gdf['y'] = y_list
+
+if (('_ivt_' in region_type) | ('_mt_' in region_type)):
+    # Put the stroke team names back into these gdfs.
+    cols_to_merge = ['stroke_team', 'ssnap_name']
+    gdf_lhs = pd.merge(
+        df_demog[cols_to_merge], gdf_lhs,
+        left_index=True, right_on=region_type, how='right'
+        )
+    gdf_rhs = pd.merge(
+        df_demog[cols_to_merge], gdf_rhs,
+        left_index=True, right_on=region_type, how='right'
+        )
 
 # ----- Plot -----
 with container_maps:
