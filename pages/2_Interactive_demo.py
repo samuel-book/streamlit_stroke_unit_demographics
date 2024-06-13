@@ -41,7 +41,7 @@ container_column_select = st.container()
 container_maps = st.empty()
 container_hist = st.container()
 # Inputs for overwriting default colourbars:
-with st.expander('Colour setup'):
+with st.expander('Colour and histogram setup'):
     cols = st.columns(2)
     with cols[0]:
         container_map1_cbar_setup = st.container()
@@ -72,6 +72,7 @@ region_type_dict = {
     'LSOA': 'LSOA',
 }
 with container_region_select:
+    st.markdown('### Data selection')
     region_type_str = st.selectbox(
         'Group data at this level',
         region_type_dict.keys(),
@@ -104,7 +105,7 @@ if region_type == 'LSOA':
     df_demog.index.name = 'lsoa'
 
 
-# TO DO - add pretty text explanation of column names, not just the obscure names
+# TO DO - add text explanation of column names and how weighted means are done.
 
 # TO DO - violins to show the scatter of all stroke units' data and then highlight some selected units.
 # Separate to main map app.
@@ -124,35 +125,79 @@ if region_type == 'LSOA':
 # ########## USER INPUTS ##########
 # #################################
 
+
+def select_columns(cols_selectable):
+    # Remove columns that are absolute numbers instead of ratios:
+    cols_abs = [
+        'ethnic_group_other_than_white_british',
+        'ethnic_group_all_categories_ethnic_group',
+        'bad_or_very_bad_health',
+        'all_categories_general_health',
+        'long_term_health_count',
+        'all_categories_long_term_health_problem_or_disability',
+        'age_65_plus_count',
+        # 'population_all',
+        'rural_False',
+        'rural_True',
+        'over_65_within_30_False',
+        'over_65_within_30_True',
+        'closest_is_mt_False',
+        'closest_is_mt_True'
+    ]
+    cols_unit_names = ['stroke_team', 'ssnap_name']
+    cols_to_remove = ['polygon_area_km2'] + cols_abs + cols_unit_names
+    cols_selectable = [c for c in cols_selectable if c not in cols_to_remove]
+
+    # Make column names more pretty:
+    cols_prettier = {
+        'population_density': 'Population density',
+        'income_domain_weighted_mean': 'Income domain',
+        'imd_weighted_mean': 'IMD',
+        'weighted_ivt_time': 'Time to IVT unit',
+        'mt_time_weighted_mean': 'Time to MT unit',
+        'ivt_time_weighted_mean': 'Time to IVT unit (??)',
+        'mt_transfer_time_weighted_mean': 'Time to MT unit',
+        'ethnic_minority_proportion': 'Proportion ethnic minority',
+        'bad_health_proportion': 'Proportion with bad health',
+        'long_term_health_proportion': 'Proportion with long-term health issues',
+        'population_all': 'Population',
+        'age_65_plus_proportion': 'Proportion aged 65+',
+        'proportion_rural': 'Proportion rural',
+        'proportion_over_65_within_30': 'Proportion aged 65+ and within 30mins of stroke unit',
+        'proportion_closest_is_mt': 'Proportion with MT as closest unit',
+        'ivt_rate': 'IVT rate',
+        'admissions_2122': 'Admissions (2021/22)'
+    }
+    cols_prettier_reverse = dict(
+        zip(list(cols_prettier.values()), list(cols_prettier.keys())))
+
+    cols_selectable = sorted([
+        cols_prettier[c] if c in list(cols_prettier.keys()) else c
+        for c in cols_selectable
+        ])
+
+    with container_column_select:
+        cols = st.columns(2)
+    with cols[0]:
+        col1_pretty = st.selectbox(
+            'Data for left map', options=cols_selectable, index=0)
+    with cols[1]:
+        col2_pretty = st.selectbox(
+            'Data for right map', options=cols_selectable, index=1)
+
+    try:
+        col1 = cols_prettier_reverse[col1_pretty]
+    except KeyError:
+        col1 = col1_pretty
+    try:
+        col2 = cols_prettier_reverse[col2_pretty]
+    except KeyError:
+        col2 = col2_pretty
+    return col1, col2, col1_pretty, col2_pretty
+
+
 cols_selectable = list(df_demog.columns)
-# Remove columns that are absolute numbers instead of ratios:
-cols_abs = [
-    'ethnic_group_other_than_white_british',
-    'ethnic_group_all_categories_ethnic_group',
-    'bad_or_very_bad_health',
-    'all_categories_general_health',
-    'long_term_health_count',
-    'all_categories_long_term_health_problem_or_disability',
-    'age_65_plus_count',
-    # 'population_all',
-    'rural_False',
-    'rural_True',
-    'over_65_within_30_False',
-    'over_65_within_30_True',
-    'closest_is_mt_False',
-    'closest_is_mt_True'
-]
-cols_unit_names = ['stroke_team', 'ssnap_name']
-cols_to_remove = ['polygon_area_km2'] + cols_abs + cols_unit_names
-cols_selectable = [c for c in cols_selectable if c not in cols_to_remove]
-
-with container_column_select:
-    cols = st.columns(2)
-with cols[0]:
-    col1 = st.selectbox('Data for left map', options=cols_selectable, index=0)
-with cols[1]:
-    col2 = st.selectbox('Data for right map', options=cols_selectable, index=1)
-
+col1, col2, col1_pretty, col2_pretty = select_columns(cols_selectable)
 
 # Colourmap selection
 cmap_names = [
@@ -226,8 +271,9 @@ with container_map2_cbar_setup:
 
 # Name of the column in the geojson that labels the shapes:
 with container_region_outline_setup:
-    outline_name = st.radio(
-        'Region type to draw on maps',
+    st.markdown('### Outlines')
+    outline_name = st.selectbox(
+        'Region outlines to draw on maps',
         [
             'None',
             'Ambulance service',
@@ -241,7 +287,7 @@ with container_region_outline_setup:
     )
 
 # Display names:
-subplot_titles = [col1, col2]
+subplot_titles = [col1_pretty, col2_pretty]
 cmap_titles = subplot_titles
 
 
@@ -274,13 +320,9 @@ stats_series_map1 = pd.Series(stats_dict_map1, name=col1)
 stats_series_map2 = pd.Series(stats_dict_map2, name=col2)
 
 with container_stats_map1:
-    # for key, val in stats_dict_map1.items():
-    #     st.write(f'{key}: {val}')
     st.write(stats_series_map1)
 
 with container_stats_map2:
-    # for key, val in stats_dict_map2.items():
-    #     st.write(f'{key}: {val}')
     st.write(stats_series_map2)
 
 
@@ -360,8 +402,8 @@ with container_maps:
         outline_names_col=outline_names_col,
         outline_name=outline_name,
         subplot_titles=subplot_titles,
-        colour_dict=colour_dict_map1,
-        colour_diff_dict=colour_dict_map2,
+        colour_dict=colour_dict_map1 | {'title': subplot_titles[0]},
+        colour_diff_dict=colour_dict_map2  | {'title': subplot_titles[1]},
         use_discrete_cmap=use_discrete_cmap
         )
 
@@ -369,7 +411,8 @@ with container_maps:
 with container_hist:
     plot_maps.plot_hists(
         df_demog, col1, col2,
-        colour_dict_map1, colour_dict_map2,
+        colour_dict_map1  | {'title': subplot_titles[0]},
+        colour_dict_map2  | {'title': subplot_titles[1]},
         subplot_titles,
         use_discrete_cmap=use_discrete_cmap
         )

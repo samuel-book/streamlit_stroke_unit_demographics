@@ -279,7 +279,7 @@ def plotly_many_maps(
     fig = make_subplots(
         rows=1, cols=2,
         horizontal_spacing=0.0,
-        subplot_titles=subplot_titles
+        # subplot_titles=subplot_titles
         )
 
     # Add a blank outline of England:
