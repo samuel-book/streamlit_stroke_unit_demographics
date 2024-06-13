@@ -24,18 +24,15 @@ from stroke_maps.catchment import Catchment
 import utilities.maps as maps
 import utilities.plot_maps as plot_maps
 import utilities.container_inputs as inputs
+from utilities.fixed_params import page_setup
 from utilities.inputs import load_region_outlines
 
 
 # ###########################
 # ##### START OF SCRIPT #####
 # ###########################
-# page_setup()
-st.set_page_config(
-    page_title='Stroke unit demographics',
-    page_icon=':rainbow:',
-    layout='wide'
-    )
+page_setup()
+st.markdown('# Stroke unit demographics')
 
 container_column_select = st.container()
 container_maps = st.empty()
@@ -151,12 +148,12 @@ def select_columns(cols_selectable):
     # Make column names more pretty:
     cols_prettier = {
         'population_density': 'Population density',
-        'income_domain_weighted_mean': 'Income domain',
+        'income_domain_weighted_mean': 'Income deprivation domain',
         'imd_weighted_mean': 'IMD',
         'weighted_ivt_time': 'Time to IVT unit',
         'mt_time_weighted_mean': 'Time to MT unit',
         'ivt_time_weighted_mean': 'Time to IVT unit (??)',
-        'mt_transfer_time_weighted_mean': 'Time to MT unit',
+        'mt_transfer_time_weighted_mean': 'Time to transfer unit',
         'ethnic_minority_proportion': 'Proportion ethnic minority',
         'bad_health_proportion': 'Proportion with bad health',
         'long_term_health_proportion': 'Proportion with long-term health issues',

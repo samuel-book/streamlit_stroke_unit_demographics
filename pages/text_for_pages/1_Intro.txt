@@ -1,32 +1,63 @@
 # To be printed as markdown on the landing page. 
 # ---------------------------------------------------------------------
 
-# Streamlit app template
+# Stroke unit demographics
 
 ## Summary
 
-Give a short summary of what the app does here. You could also include some links that contain more information than there's space for here. 
+This app shows the variation of various metrics for geographical areas across England and Wales
+and how these compare with their nearest acute stroke unit.
+
+This allows us to check whether the findings of our various stroke projects
+are equitable and have a fair balance of equality, diversity and inclusion.
+
+_:warning: This summary page is work-in-progress - please forgive any missing links!_
+
+## Data sources
+
+The data is collated from various sources as described in [this online book](https://samuel-book.github.io/stroke_unit_demographics/intro.html).
+
+A summary of the data sources:
++ Travel times are from our stroke work (FIND BEST LINK).
++ Thrombolysis rates and admissions numbers are from the SSNAP audit.
++ Geographical area shapes and sizes in square kilometres are from the Office for National Statistics shapefiles for LSOA.
++ Links between LSOA and the regions that contain them are as follows:
+  + Ambulance trusts: our stroke work (FIND BEST LINK).
+  + Closest stroke units: our stroke work (FIND BEST LINK).
+  + Integrated Care Boards (England): Office for National Statistics
+  + Local Health Boards (Wales): Office for National Statistics
+  + Integrated Stroke Delivery Networks: our stroke work (FIND BEST LINK).
++ Transfer units for thrombectomy are the unit with the smallest travel time from each acute stroke unit.
 
 
-## Background information 
 
-It's worth having a quick overview of what the app is about, if it's not obvious. 
-
-We're looking at how 
-
-+ input 1 
-+ input 2 and
-+ input 3
-
-affect the output. 
-
-Emoji can be written too. For :ambulance: the `:ambulance:` format can be used in markdown, and the `\U0001f691` format can be used in streamlit input labels. 
+| Measure | Name in tables | Description | Calculation from LSOA |
+| --- | --- | --- | --- |
+| Population density | `population_density` | The population of a region divided by its area. |  |
+| Income deprivation domain | `income_domain_weighted_mean` | ["The proportion of the population in an area experiencing deprivation relating to low income."](https://www.gov.uk/government/statistics/indices-of-deprivation-2019-income-and-employment-domains-combined-for-england-and-wales/indices-of-deprivation-2019-income-and-employment-domains-combined-for-england-and-wales-guidance-note) |  |
+| IMD | `imd_weighted_mean` | Index of Multiple Deprivation. A weighted combination of seven separate deprivation domain measures. |  |
+| Time to IVT unit | `weighted_ivt_time` | Time in minutes from each LSOA centroid to its nearest acute stroke unit. |  |
+| Time to MT unit | `mt_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit that offers thrombectomy. |  |
+| Time to IVT unit (??) | `ivt_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit. |  |
+| Time to transfer unit | `mt_transfer_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit and then to that unit's selected transfer unit for thrombectomy. |  |
+| Proportion ethnic minority | `ethnic_minority_proportion` | Proportion of the population that are "other than white British". |  |
+| Proportion with bad health | `bad_health_proportion` | Proportion of the population that has bad health. |  |
+| Proportion with long-term health issues | `long_term_health_proportion` | Proportion of the population that has long-term health issues. |  |
+| Population | `population_all` | Population of the region. |  |
+| Proportion aged 65+ | `age_65_plus_proportion` | Proportion of the population that is aged 65 years and over. |  |
+| Proportion rural | `proportion_rural` | Proportion of the population that lives in a rural location. |  |
+| Proportion aged 65+ and within 30mins of stroke unit | `proportion_over_65_within_30` | Proportion of the population that is aged 65 years and over _and_ lives within 30 minutes of their nearest stroke unit. |  |
+| Proportion with MT as closest unit | `proportion_closest_is_mt` | Proportion of the population whose nearest acute stroke unit offers thrombectomy. |  |
+| IVT rate | `ivt_rate` | (Only given when data grouped by nearest IVT unit.) The thrombolysis rate at this stroke unit. |  |
+| Admissions (2021/22) | `admissions_2122` | (Only given when data grouped by nearest IVT unit.) The number of admissions to this stroke unit in the calendar years 2021 and 2022. |  |
 
 
 ## How to use this app
 
 Go to the "Interactive demo" in the left sidebar.
-There you can change **the input parameters** to see the resulting effect on **the output**.
+There you can select two demographic options and see a map of their variation around England and Wales.
+
+To download the full data tables, hover over the table to toggle a menu in its top-right corner and then press the download button.
 
 To change between light mode and dark mode or to make the display wider, change the settings under the Menu in the top right of the screen.
 
@@ -35,10 +66,12 @@ To change between light mode and dark mode or to make the display wider, change 
 
 | Acronym | Full name | 
 |---|---|
-| WAUA | Weird And Unusual Acronym  | 
-| TCBU | This Can Be Useful  |
-
-
-### Limitations 
-
-Is there anything your app *does not* do but that people might reasonably misunderstand it to be doing? 
+| ICB | Integrated Care Board |
+| IMD | Index of Multiple Deprivation |
+| ISDN | Integrated Stroke Delivery Network |
+| IVT | Intravenous thrombolysis |
+| LHB | Local Health Board |
+| LSOA | Lower Super Output Area |
+| MT | Mechanical thrombectomy |
+| ONS | Office for National Statistics |
+| STD | Standard deviation |
