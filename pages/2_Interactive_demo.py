@@ -50,6 +50,9 @@ with st.expander('Colour setup'):
 with st.sidebar:
     container_region_select = st.container()
     container_region_outline_setup = st.container()
+container_stats = st.container()
+with container_stats:
+    container_stats_map1, container_stats_map2 = st.columns(2)
 with st.expander('Full data table'):
     container_data_table = st.container()
 
@@ -70,7 +73,10 @@ region_type_dict = {
 }
 with container_region_select:
     region_type_str = st.selectbox(
-        'Group data at this level', region_type_dict.keys())
+        'Group data at this level',
+        region_type_dict.keys(),
+        index=1  # index of default option
+        )
 region_type = region_type_dict[region_type_str]
 
 # Import the full travel time matrix:
@@ -83,6 +89,19 @@ with container_data_table:
 if region_type == 'LSOA':
     # Rename index to 'lsoa':
     df_demog.index.name = 'lsoa'
+
+# TO DO - remove repeat population_all column
+# TO DO - fix column names with missing characters
+
+# TO DO - add pretty text explanation of column names, not just the obscure names
+
+# TO DO - violins to show the scatter of all stroke units' data and then highlight some selected units.
+# Separate to main map app.
+# Could show a reference map with the regions coloured by broader region (south west vs north east e.g.)
+# and then colour all points by those reference colours. So still get some geographical info
+# but won't take the huge load time.
+
+# TO DO - print means, stds etc across all regions.
 
 # TO DO - show stroke unit locations
 
@@ -98,13 +117,32 @@ if region_type == 'LSOA':
 # #################################
 
 cols_selectable = list(df_demog.columns)
+# Remove columns that are absolute numbers instead of ratios:
+cols_abs = [
+    'ethnic_group_other_than_white_british',
+    'ethnic_group_all_categories_ethnic_group',
+    'bad_or_very_bad_health',
+    'all_categories_general_health',
+    'long_term_health_count',
+    'all_categories_long_term_health_problem_or_disability',
+    'age_65_plus_count',
+    # 'population_all',
+    'rural_False',
+    'rural_True',
+    'over_65_within_30_False',
+    'over_65_within_30_True',
+    'closest_is_mt_False',
+    'closest_is_mt_True'
+]
+cols_to_remove = ['polygon_area_km2'] + cols_abs
+cols_selectable = [c for c in cols_selectable if c not in cols_to_remove]
 
 with container_column_select:
     cols = st.columns(2)
 with cols[0]:
-    col1 = st.selectbox('Data for left map', options=cols_selectable, index=1)
+    col1 = st.selectbox('Data for left map', options=cols_selectable, index=0)
 with cols[1]:
-    col2 = st.selectbox('Data for right map', options=cols_selectable, index=2)
+    col2 = st.selectbox('Data for right map', options=cols_selectable, index=1)
 
 
 # User inputs for which hospitals to pick:
@@ -210,6 +248,36 @@ cmap_titles = subplot_titles
 # Later, when the calculations are finished, replace with the actual map.
 with container_maps:
     plot_maps.plotly_blank_maps(['', ''], n_blank=2)
+
+# Find means, std etc.:
+def calculate_stats(vals):
+    s = {}
+    s['mean'] = vals.mean()
+    s['std'] = vals.std()
+    s['q1'] = vals.quantile(0.25)
+    s['median'] = vals.median()
+    s['q3'] = vals.quantile(0.75)
+
+    if int(s['median']) == s['median']:
+        s['mean'] = int(round(s['mean'], 0))
+        s['std'] = int(round(s['std'], 0))
+    return s
+
+stats_dict_map1 = calculate_stats(df_demog[col1])
+stats_dict_map2 = calculate_stats(df_demog[col2])
+
+stats_series_map1 = pd.Series(stats_dict_map1, name=col1)
+stats_series_map2 = pd.Series(stats_dict_map2, name=col2)
+
+with container_stats_map1:
+    # for key, val in stats_dict_map1.items():
+    #     st.write(f'{key}: {val}')
+    st.write(stats_series_map1)
+
+with container_stats_map2:
+    # for key, val in stats_dict_map2.items():
+    #     st.write(f'{key}: {val}')
+    st.write(stats_series_map2)
 
 
 # ####################################
