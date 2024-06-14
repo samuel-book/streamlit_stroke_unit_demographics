@@ -5,20 +5,16 @@
 
 ## About the method 
 
-More detail can be found in these places:
-
-1. Our paper 
-2. Their paper
-3. This website 
+More detail about the data creation can be found in the [online book](https://samuel-book.github.io/stroke_unit_demographics/intro.html).
 
 ## About the app  
 
 The code behind this app is written in `python3` and the app itself is deployed using `streamlit`, which is a free service for hosting [python web apps](https://streamlit.io/). 
 
-If any unusual or particularly useful packages have been used, you could mention them here and encourage others to use them. 
-
 ## References
 
-+ Me, I. et al., 2022. A Brilliant Paper I Wrote. *Journal* 1, 1-10. DOI
+_:warning: Work-in-progress_
+
++ [Fluck et al. 2023](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9891657/) Nature publication using SSNAP data to compare stroke outcomes in caucasion population versus ethnic minorities, finding people from ethnic minorities have earlier onset and more adverse outcomes.
 
 

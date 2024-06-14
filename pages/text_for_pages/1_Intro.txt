@@ -18,37 +18,57 @@ _:warning: This summary page is work-in-progress - please forgive any missing li
 The data is collated from various sources as described in [this online book](https://samuel-book.github.io/stroke_unit_demographics/intro.html).
 
 A summary of the data sources:
-+ Travel times are from our stroke work (FIND BEST LINK).
-+ Thrombolysis rates and admissions numbers are from the SSNAP audit.
-+ Geographical area shapes and sizes in square kilometres are from the Office for National Statistics shapefiles for LSOA.
-+ Links between LSOA and the regions that contain them are as follows:
-  + Ambulance trusts: our stroke work (FIND BEST LINK).
-  + Closest stroke units: our stroke work (FIND BEST LINK).
-  + Integrated Care Boards (England): Office for National Statistics
-  + Local Health Boards (Wales): Office for National Statistics
-  + Integrated Stroke Delivery Networks: our stroke work (FIND BEST LINK).
-+ Transfer units for thrombectomy are the unit with the smallest travel time from each acute stroke unit.
+
+| Measure | Source | Comments |
+| --- | --- | --- |
+| Thrombolysis rates | SSNAP audit | (_:warning: to do: find best link_) |
+| Admissions numbers | SSNAP audit | 2021-22 data for acute stroke units. |
+| Geographical area shapes and sizes | Office for National Statistics | 2011 data. |
+| Links between LSOA and Integrated Care Boards (England) | Office for National Statistics | LSOA 2011 to ICB 2022. |
+| Links between LSOA and Local Health Boards (Wales) | Office for National Statistics | LSOA 2011 to LHB December 2022. |
+| Links between LSOA and Ambulance Trusts | Our stroke work | [Info](https://samuel-book.github.io/stroke_unit_demographics/01b_ambulance_trusts.html). |
+| Links between LSOA and ISDNs |  Our stroke work | [Info](https://github.com/samuel-book/geography_data/blob/mt_catchment/geojson/isdn_boundaries.ipynb) (_:warning: Temporary link_). |
+| Travel times from LSOA to stroke units and from stroke units to transfer units | Our stroke work | (_:warning: to do: find best link_) |
+| Travel times from stroke units to transfer units | Our stroke work | (_:warning: to do: find best link_) |
+| Population | Office for National Statistics | [Info](https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/lowersuperoutputareapopulationdensity). Mid-2018 SAPE21DT11 data. |
+| Income deprivation domain | gov.uk | [Info](https://www.gov.uk/government/statistics/english-indices-of-deprivation-2019). 2019 data. |
+| Index of Mass Deprivation | gov.uk | [Info](https://www.gov.uk/government/statistics/english-indices-of-deprivation-2019). 2019 data. |
+| Ethnicity | Census 2011 | [Info](https://www.nomisweb.co.uk/census/2011/lc2101ew) |
+| General health | Census 2011 | [Info](https://www.nomisweb.co.uk/census/2011/lc3206ew). Each person in the household was asked to rate their health in general; the possible responses were ‘Very good’, ‘Good’, ‘Fair’, ‘Bad’ and ‘Very bad’. |
+| Long-term health issues | Census 2011 | Info [here](https://www.nomisweb.co.uk/census/2011/lc3205ew) and [here](https://www.nomisweb.co.uk/census/2011/lc3302ew). People were asked "Are your day-to-day activities limited because of a health problem or disability which has lasted, or is expected to last, at least 12 months, include problems related to old age". Respondents could choose not, or "limited a little", or "limited a lot". |
+| Age | Office for National Statistics | [Info](https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/lowersuperoutputareamidyearpopulationestimates). Mid-2018 SAPE21DT11 data. |
+| Rural | gov.uk | [Info](https://data.gov.uk/dataset/b1165cea-2655-4cf7-bf22-dfbd3cdeb242/rural-urban-classification-2011-of-lower-layer-super-output-areas-in-england-and-wales). 2011 data. We class "rural" areas as any whose rural-urban classification begins with the word "rural". |
 
 
-| Measure | Name in tables | Description | Calculation from LSOA |
+
+### Selectable columns in the app
+
+| Measure | Name in tables | Description | Calculation from LSOA-level data |
 | --- | --- | --- | --- |
-| Population density | `population_density` | The population of a region divided by its area. |  |
-| Income deprivation domain | `income_domain_weighted_mean` | ["The proportion of the population in an area experiencing deprivation relating to low income."](https://www.gov.uk/government/statistics/indices-of-deprivation-2019-income-and-employment-domains-combined-for-england-and-wales/indices-of-deprivation-2019-income-and-employment-domains-combined-for-england-and-wales-guidance-note) |  |
-| IMD | `imd_weighted_mean` | Index of Multiple Deprivation. A weighted combination of seven separate deprivation domain measures. |  |
-| Time to IVT unit | `weighted_ivt_time` | Time in minutes from each LSOA centroid to its nearest acute stroke unit. |  |
-| Time to MT unit | `mt_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit that offers thrombectomy. |  |
-| Time to IVT unit (??) | `ivt_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit. |  |
-| Time to transfer unit | `mt_transfer_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit and then to that unit's selected transfer unit for thrombectomy. |  |
-| Proportion ethnic minority | `ethnic_minority_proportion` | Proportion of the population that are "other than white British". |  |
-| Proportion with bad health | `bad_health_proportion` | Proportion of the population that has bad health. |  |
-| Proportion with long-term health issues | `long_term_health_proportion` | Proportion of the population that has long-term health issues. |  |
-| Population | `population_all` | Population of the region. |  |
-| Proportion aged 65+ | `age_65_plus_proportion` | Proportion of the population that is aged 65 years and over. |  |
-| Proportion rural | `proportion_rural` | Proportion of the population that lives in a rural location. |  |
-| Proportion aged 65+ and within 30mins of stroke unit | `proportion_over_65_within_30` | Proportion of the population that is aged 65 years and over _and_ lives within 30 minutes of their nearest stroke unit. |  |
-| Proportion with MT as closest unit | `proportion_closest_is_mt` | Proportion of the population whose nearest acute stroke unit offers thrombectomy. |  |
-| IVT rate | `ivt_rate` | (Only given when data grouped by nearest IVT unit.) The thrombolysis rate at this stroke unit. |  |
-| Admissions (2021/22) | `admissions_2122` | (Only given when data grouped by nearest IVT unit.) The number of admissions to this stroke unit in the calendar years 2021 and 2022. |  |
+| Population density | `population_density` | The population of a region divided by its area. | Sum areas of all LSOA in region. Sum populations of all LSOA in region. Divide total population by total area. |
+| Income deprivation domain  (weighted by population) | `income_domain_weighted_mean` | Proportion of population experiencing deprivation relating to low levels of income. [Info](https://www.gov.uk/government/statistics/indices-of-deprivation-2019-income-and-employment-domains-combined-for-england-and-wales/indices-of-deprivation-2019-income-and-employment-domains-combined-for-england-and-wales-guidance-note) | Multiply each LSOA's income domain by its population. Sum results across all LSOA in region. Divide the sum by the total population. |
+| IMD (weighted by population) | `imd_weighted_mean` | Index of Multiple Deprivation. A weighted combination of seven separate deprivation domain measures. | Multiply each LSOA's IMD by its population. Sum results across all LSOA in region. Divide the sum by the total population. |
+| Time to IVT unit (weighted by number of people aged 65+) | `weighted_ivt_time` | Time in minutes from each LSOA centroid to its nearest acute stroke unit. | Multiply each LSOA's time to IVT unit by its number of people aged 65+. Sum results across all LSOA in region. Divide the sum by the total number of people aged 65+. |
+| Time to MT unit (weighted by population) | `mt_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit that offers thrombectomy. | Multiply each LSOA's time to MT unit by its population. Sum results across all LSOA in region. Divide the sum by the total population. |
+| Time to IVT unit (weighted by population) | `ivt_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit. | Multiply each LSOA's time to IVT unit by its population. Sum results across all LSOA in region. Divide the sum by the total population. |
+| Time to transfer unit (weighted by population) | `mt_transfer_time_weighted_mean` | Time in minutes from each LSOA centroid to its nearest acute stroke unit and then to that unit's selected transfer unit for thrombectomy. When the nearest acute stroke unit offers thrombectomy, the extra transfer time is zero minutes. | Multiply each LSOA's time to transfer unit by its population. Sum results across all LSOA in region. Divide the sum by the total population. |
+| Proportion ethnic minority | `ethnic_minority_proportion` | Proportion of the population that are "other than white British", [following Gov.uk recommendations](https://www.ethnicity-facts-figures.service.gov.uk/style-guide/writing-about-ethnicity/). | Sum the number of people with "other than white British" ethnicity across all LSOA in region. Divide by the total population across all LSOA in region. |
+| Proportion with bad health | `bad_health_proportion` | Proportion of the population that has "bad" or "very bad" general health (2011 census). | Sum the number of people with "bad" or "very bad" general health across all LSOA in region. Divide by the total population across all LSOA in region. |
+| Proportion with long-term health issues | `long_term_health_proportion` | Proportion of the population that has long-term health issues (day-to-day activities limited "a little" or "a lot" as opposed to "not limited"). | Sum the number of people with long-term health issues across all LSOA in region. Divide by the total population across all LSOA in region. |
+| Population | `population_all` | Population of the region. | Sum populations of all LSOA in region. |
+| Proportion aged 65+ | `age_65_plus_proportion` | Proportion of the population that is aged 65 years and over. | Sum the number of people aged 65+ across all LSOA in region. Divide by the total population across all LSOA in region. |
+| Proportion rural | `proportion_rural` | Proportion of the population that lives in a rural location. | Sum the number of people in a rural location across all LSOA in region. Divide by the total population across all LSOA in region. |
+| Proportion of people aged 65+ who live within 30mins of stroke unit | `proportion_over_65_within_30` | Proportion of the population that is aged 65 years and over that lives within 30 minutes of their nearest stroke unit. | Sum the number of people aged 65+ across all LSOA in region. Of these, sum the number of people who live within 30 minutes of their nearest stroke unit. Divide the number who do live within 30 minutes of the unit by the total number of people aged 65+. |
+| Proportion with MT as closest unit | `proportion_closest_is_mt` | Proportion of the population whose nearest acute stroke unit offers thrombectomy. | Sum the number of people whose nearest stroke unit offers thrombectomy across all LSOA in region. Divide by the total population across all LSOA in region. |
+| IVT rate | `ivt_rate` | (Only given when data grouped by nearest IVT unit.) The thrombolysis rate at this stroke unit. | N/A |
+| Admissions (2021/22) | `admissions_2122` | (Only given when data grouped by nearest IVT unit.) The number of admissions to this stroke unit in the calendar years 2021 and 2022. | N/A |
+
+
+### Other columns in the data tables
+
+There are additional columns in the full data tables. These are the steps towards turning absolute numbers of patients into proportions of patients.
+
+For example, the columns `long_term_health_count` and `all_categories_long_term_health_problem_or_disability` are the absolute numbers of patients that go into calculating the proportion `long_term_health_proportion`.
 
 
 ## How to use this app
@@ -58,7 +78,7 @@ There you can select two demographic options and see a map of their variation ar
 
 To download the full data tables, hover over the table to toggle a menu in its top-right corner and then press the download button.
 
-To change between light mode and dark mode or to make the display wider, change the settings under the Menu in the top right of the screen.
+To change between light mode and dark mode, change the settings under the Menu in the top right of the screen.
 
 
 ### Acronym reference 
