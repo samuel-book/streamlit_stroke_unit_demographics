@@ -74,7 +74,10 @@ cols_for_violin = df_demog.columns
 
 from utilities.fixed_params import \
     cols_abs, cols_prettier_dict, cols_prettier_reverse_dict
-cols_to_remove = ['closest_ivt_unit', 'ssnap_name', 'polygon_area_km2']
+cols_to_remove = [
+    'closest_mt_transfer', 'closest_mt_unit', 'closest_ivt_unit',
+    'ssnap_name', 'polygon_area_km2'
+    ]
 remove_abs_columns_bool = True
 if remove_abs_columns_bool:
     # Remove columns that are absolute numbers instead of ratios:

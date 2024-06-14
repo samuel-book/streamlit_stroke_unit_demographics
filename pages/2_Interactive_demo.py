@@ -346,7 +346,10 @@ with container_scatter:
     st.markdown('Compare the variation of two features across regions.')
 
     cols_selectable = list(df_demog.columns)
-    cols_to_remove = ['stroke_team', 'ssnap_name', 'closest_ivt_unit']
+    cols_to_remove = [
+        'stroke_team', 'ssnap_name', 'closest_ivt_unit',
+        'closest_mt_transfer', 'closest_mt_unit'
+        ]
     cols_selectable = [c for c in cols_selectable if c not in cols_to_remove]
 
     cols_scatter_inputs = st.columns(3)
@@ -363,7 +366,7 @@ with container_scatter:
 
     with st.expander('Statistics'):
         cols_scatter_stats = st.columns(3)
-    
+
     # ----- Statistics -----
     # Find means, std etc.:
     def calculate_stats(vals):
