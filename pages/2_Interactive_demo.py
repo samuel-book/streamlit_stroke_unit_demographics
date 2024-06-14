@@ -365,7 +365,7 @@ with container_scatter:
     st.markdown('Compare the variation of two features across regions.')
 
     cols_selectable = list(df_demog.columns)
-    cols_to_remove = ['stroke_team', 'ssnap_name']
+    cols_to_remove = ['stroke_team', 'ssnap_name', 'closest_ivt_unit']
     cols_selectable = [c for c in cols_selectable if c not in cols_to_remove]
 
     cols_scatter_inputs = st.columns(3)
@@ -378,7 +378,7 @@ with container_scatter:
             cols_selectable, label='Feature for y-axis', index=1)
     with cols_scatter_inputs[2]:
         c_feature_name, c_feature_display_name = inputs.select_columns(
-            cols_selectable, label='Feature for colour', index=2)
+            [' None'] + cols_selectable, label='Feature for colour', index=0)
 
     scatter_fields(
         x_feature_name,

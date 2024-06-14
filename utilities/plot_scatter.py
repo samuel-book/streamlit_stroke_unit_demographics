@@ -47,7 +47,7 @@ def scatter_fields(
 
     fig = go.Figure()
 
-    if c_feature_display_name != 'None':
+    if c_feature_display_name != ' None':
         # Fig with colourbar
         fig_width = 700 + 5 * len(x_feature_display_name)
     else:
@@ -112,7 +112,7 @@ def scatter_fields(
         ))
 
     # Plot all teams that are not highlighted:
-    if c_feature_display_name != 'None':
+    if c_feature_display_name != ' None':
         # Colour teams by third value
         fig.add_trace(go.Scatter(
             x=df[x_feature_name],
@@ -153,7 +153,7 @@ def scatter_fields(
         xaxis_title=x_feature_display_name,
         yaxis_title=y_feature_display_name
     )
-    if c_feature_display_name != 'None':
+    if c_feature_display_name != ' None':
         # Move the legend to make space for the colour bar.
         fig.update_layout(legend=dict(
             orientation='v',
