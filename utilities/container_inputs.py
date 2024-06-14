@@ -316,3 +316,37 @@ def lookup_colour_scale(col, values):
             'step_size': step_size,
         }
     return colour_scale_dict
+
+
+def select_columns(
+        cols_selectable,
+        remove_abs_columns_bool=True,
+        **kwargs
+        ):
+    # Remove columns that are absolute numbers instead of ratios:
+    from utilities.fixed_params import \
+        cols_abs, cols_prettier_dict, cols_prettier_reverse_dict
+    cols_unit_names = ['stroke_team', 'ssnap_name']
+    cols_to_remove = ['polygon_area_km2'] + cols_unit_names
+    if remove_abs_columns_bool:
+        cols_to_remove += cols_abs
+    cols_selectable = [c for c in cols_selectable if c not in cols_to_remove]
+    # Add the overall population back in:
+    cols_selectable += ['population_all']
+
+    # Convert each column name to its prettier version if available:
+    cols_selectable = sorted([
+        cols_prettier_dict[c] if c in list(cols_prettier_dict.keys()) else c
+        for c in cols_selectable
+        ])
+
+    # User input:
+    col1_pretty = st.selectbox(options=cols_selectable, **kwargs)
+
+    # Pick out the non-pretty column name from the pretty one:
+    try:
+        col1 = cols_prettier_reverse_dict[col1_pretty]
+    except KeyError:
+        col1 = col1_pretty
+    # Return both versions of the column name:
+    return col1, col1_pretty

@@ -30,7 +30,6 @@ A summary of the data sources:
 + Transfer units for thrombectomy are the unit with the smallest travel time from each acute stroke unit.
 
 
-
 | Measure | Name in tables | Description | Calculation from LSOA |
 | --- | --- | --- | --- |
 | Population density | `population_density` | The population of a region divided by its area. |  |
