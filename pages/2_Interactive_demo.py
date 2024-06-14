@@ -52,6 +52,8 @@ container_stats = st.container()
 with container_stats:
     container_stats_map1, container_stats_map2 = st.columns(2)
 container_scatter = st.container()
+
+st.markdown('## Full data')
 with st.expander('Full data table'):
     container_data_table = st.container()
 
@@ -82,6 +84,10 @@ region_type = region_type_dict[region_type_str]
 # Import the full travel time matrix:
 df_demog = pd.read_csv(
     f'./data/collated_data_regional_{region_type}.csv', index_col=0)
+# Drop missing data:
+# (this is particularly aimed at the Welsh areas when the
+# region type is ISDN, as there isn't an ISDN label for Wales.)
+df_demog = df_demog.dropna(axis='rows')
 
 # Stroke unit info:
 catchment = Catchment()
