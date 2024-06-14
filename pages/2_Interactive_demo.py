@@ -235,31 +235,6 @@ cmap_titles = subplot_titles
 with container_maps:
     plot_maps.plotly_blank_maps(['', ''], n_blank=2)
 
-# ----- Statistics -----
-# Find means, std etc.:
-def calculate_stats(vals):
-    s = {}
-    s['mean'] = vals.mean()
-    s['std'] = vals.std()
-    s['q1'] = vals.quantile(0.25)
-    s['median'] = vals.median()
-    s['q3'] = vals.quantile(0.75)
-
-    if int(s['median']) == s['median']:
-        s['mean'] = int(round(s['mean'], 0))
-        s['std'] = int(round(s['std'], 0))
-    return s
-
-stats_dict_map1 = calculate_stats(df_demog[col1])
-stats_dict_map2 = calculate_stats(df_demog[col2])
-
-with container_stats_map1:
-    st.write(pd.Series(stats_dict_map1, name=col1))
-
-with container_stats_map2:
-    st.write(pd.Series(stats_dict_map2, name=col2))
-
-
 # ####################################
 # ########## SETUP FOR MAPS ##########
 # ####################################
@@ -379,6 +354,36 @@ with container_scatter:
     with cols_scatter_inputs[2]:
         c_feature_name, c_feature_display_name = inputs.select_columns(
             [' None'] + cols_selectable, label='Feature for colour', index=0)
+
+    with st.expander('Statistics'):
+        cols_scatter_stats = st.columns(3)
+    
+    # ----- Statistics -----
+    # Find means, std etc.:
+    def calculate_stats(vals):
+        s = {}
+        s['mean'] = vals.mean()
+        s['std'] = vals.std()
+        s['q1'] = vals.quantile(0.25)
+        s['median'] = vals.median()
+        s['q3'] = vals.quantile(0.75)
+
+        if int(s['median']) == s['median']:
+            s['mean'] = int(round(s['mean'], 0))
+            s['std'] = int(round(s['std'], 0))
+        return s
+
+    stats_dict_x = calculate_stats(df_demog[x_feature_name])
+    stats_dict_y = calculate_stats(df_demog[y_feature_name])
+
+    with cols_scatter_stats[0]:
+        st.write(pd.Series(stats_dict_x, name=x_feature_display_name))
+    with cols_scatter_stats[1]:
+        st.write(pd.Series(stats_dict_y, name=y_feature_display_name))
+    with cols_scatter_stats[2]:
+        if c_feature_display_name != ' None':
+            stats_dict_c = calculate_stats(df_demog[c_feature_name])
+            st.write(pd.Series(stats_dict_c, name=c_feature_display_name))
 
     scatter_fields(
         x_feature_name,
