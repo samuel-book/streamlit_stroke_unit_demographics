@@ -326,6 +326,14 @@ if (('_ivt_' in region_type) | ('_mt_' in region_type)):
         left_index=True, right_on=region_type, how='right'
         )
 
+
+# ----- Swap unit postcodes for names -----
+if (('_ivt_' in region_type) | ('_mt_' in region_type)):
+    # Can't do this earlier because the df_demog to gdf lookup
+    # needs postcodes.
+    df_demog = df_demog.reset_index()
+    df_demog = df_demog.set_index('stroke_team')
+
 # ----- Maps -----
 with container_maps:
     plot_maps.plotly_many_maps(
