@@ -290,12 +290,12 @@ def select_colour_maps(cmap_names):
 
 def lookup_colour_scale(col, values):
     # For this column of data, use predefined colour bands.
-    if 'prop' in col:
+    if 'proportion' in col:
         # Assume data is scaled between 0 and 1.
         colour_scale_dict = {
-            'vmin': 0.1,
-            'vmax': 0.9,
-            'step_size': 0.1,
+            'vmin': 10.0,
+            'vmax': 90.0,
+            'step_size': 10.0,
         }
     else:
         # Show near enough the full range of values.
@@ -323,12 +323,12 @@ def select_columns(
         remove_abs_columns_bool=True,
         **kwargs
         ):
-    # Remove columns that are absolute numbers instead of ratios:
     from utilities.fixed_params import \
         cols_abs, cols_prettier_dict, cols_prettier_reverse_dict
     cols_unit_names = ['stroke_team', 'ssnap_name']
     cols_to_remove = ['polygon_area_km2'] + cols_unit_names
     if remove_abs_columns_bool:
+        # Remove columns that are absolute numbers instead of ratios:
         cols_to_remove += cols_abs
     cols_selectable = [c for c in cols_selectable if c not in cols_to_remove]
     # Add the overall population back in:

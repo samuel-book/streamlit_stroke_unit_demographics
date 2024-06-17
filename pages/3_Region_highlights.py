@@ -40,13 +40,17 @@ with st.sidebar:
         )
 region_type = region_type_dict[region_type_str]
 
-# Import the full travel time matrix:
+# Import the full demographic data:
 df_demog = pd.read_csv(
     f'./data/collated_data_regional_{region_type}.csv', index_col=0)
 # Drop missing data:
 # (this is particularly aimed at the Welsh areas when the
 # region type is ISDN, as there isn't an ISDN label for Wales.)
 df_demog = df_demog.dropna(axis='rows')
+# Convert proportions (0 -> 1) to percentages (0 -> 100)
+# to match the IMD.
+cols_prop = [c for c in df_demog if 'proportion' in c]
+df_demog[cols_prop] = df_demog[cols_prop] * 100.0
 
 # Stroke unit info:
 catchment = Catchment()
