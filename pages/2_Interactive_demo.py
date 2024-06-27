@@ -137,14 +137,24 @@ if region_type == 'LSOA':
 
 cols_selectable = list(df_demog.columns)
 
+# Set the default columns.
+col1_default = 'imd_weighted_mean'
+col2_default = 'ethnic_minority_proportion'
+
 with container_column_select:
     cols = st.columns(2)
 with cols[0]:
     col1, col1_pretty = inputs.select_columns(
-        cols_selectable, label='Data for left map', index=0)
+        cols_selectable,
+        label='Data for left map',
+        default_column=col1_default
+        )
 with cols[1]:
     col2, col2_pretty = inputs.select_columns(
-        cols_selectable, label='Data for right map', index=1)
+        cols_selectable,
+        label='Data for right map',
+        default_column=col2_default
+        )
 
 # Colourmap selection
 cmap_names = [
@@ -360,13 +370,22 @@ with container_scatter:
     # Pick features to scatter:
     with cols_scatter_inputs[0]:
         x_feature_name, x_feature_display_name = inputs.select_columns(
-            cols_selectable, label='Feature for x-axis', index=0)
+            cols_selectable,
+            label='Feature for x-axis',
+            default_column=col1_default
+            )
     with cols_scatter_inputs[1]:
         y_feature_name, y_feature_display_name = inputs.select_columns(
-            cols_selectable, label='Feature for y-axis', index=1)
+            cols_selectable,
+            label='Feature for y-axis',
+            default_column=col2_default
+            )
     with cols_scatter_inputs[2]:
         c_feature_name, c_feature_display_name = inputs.select_columns(
-            [' None'] + cols_selectable, label='Feature for colour', index=0)
+            [' None'] + cols_selectable,
+            label='Feature for colour',
+            default_column=''  # defaults to first in list.
+            )
 
     with st.expander('Statistics'):
         cols_scatter_stats = st.columns(3)

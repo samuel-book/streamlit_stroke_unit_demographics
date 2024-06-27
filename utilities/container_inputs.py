@@ -321,6 +321,7 @@ def lookup_colour_scale(col, values):
 def select_columns(
         cols_selectable,
         remove_abs_columns_bool=True,
+        default_column='',
         **kwargs
         ):
     from utilities.fixed_params import \
@@ -340,8 +341,23 @@ def select_columns(
         for c in cols_selectable
         ])
 
+    # Find where these are in the lists of available columns:
+    try:
+        if default_column in list(cols_prettier_dict.keys()):
+            default_column = cols_prettier_dict[default_column]
+        else:
+            pass
+        col1_default_ind = cols_selectable.index(default_column)
+    except ValueError:
+        # That column isn't in the list.
+        col1_default_ind = 0
+
     # User input:
-    col1_pretty = st.selectbox(options=cols_selectable, **kwargs)
+    col1_pretty = st.selectbox(
+        options=cols_selectable,
+        index=col1_default_ind,
+        **kwargs
+        )
 
     # Pick out the non-pretty column name from the pretty one:
     try:
