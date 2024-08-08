@@ -11,7 +11,7 @@ import cmasher as cmr  # for additional colour maps
 # from plotly.express.colors import named_colorscales
 from math import log10, floor
 
-from stroke_maps.catchment import Catchment  # for unit services
+import stroke_maps.load_data
 
 
 def select_stroke_unit_services(use_msu=True):
@@ -32,8 +32,7 @@ def select_stroke_unit_services(use_msu=True):
 
 def import_stroke_unit_services(use_msu=True):
     # Set up stroke unit services (IVT, MT, MSU).
-    catchment = Catchment()
-    df_unit_services = catchment.get_unit_services()
+    df_unit_services = stroke_maps.load_data.stroke_unit_region_lookup()
     # Remove Wales:
     df_unit_services = df_unit_services.loc[df_unit_services['region_type'] != 'LHB'].copy()
     df_unit_services_full = df_unit_services.copy()

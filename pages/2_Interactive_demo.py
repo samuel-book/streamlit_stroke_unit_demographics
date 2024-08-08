@@ -16,9 +16,10 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from utilities.maps import convert_shapely_polys_into_xy
 
-from stroke_maps.utils import find_multiindex_column_names
-from stroke_maps.geo import _load_geometry_stroke_units, check_scenario_level
-from stroke_maps.catchment import Catchment
+# from stroke_maps.utils import find_multiindex_column_names
+# from stroke_maps.geo import _load_geometry_stroke_units, check_scenario_level
+# from stroke_maps.catchment import Catchment
+import stroke_maps.load_data
 
 # Custom functions:
 import utilities.maps as maps
@@ -94,8 +95,7 @@ cols_prop = [c for c in df_demog if 'proportion' in c]
 df_demog[cols_prop] = df_demog[cols_prop] * 100.0
 
 # Stroke unit info:
-catchment = Catchment()
-df_units = catchment.get_unit_services()
+df_units = stroke_maps.load_data.stroke_unit_region_lookup()
 
 if (('_ivt_' in region_type) | ('_mt_' in region_type)):
     # The data is saved with stroke unit postcodes as the only

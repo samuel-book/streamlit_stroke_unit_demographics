@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from stroke_maps.catchment import Catchment
+import stroke_maps.load_data
 import plotly.graph_objects as go
 
 from utilities.fixed_params import page_setup
@@ -53,8 +53,7 @@ cols_prop = [c for c in df_demog if 'proportion' in c]
 df_demog[cols_prop] = df_demog[cols_prop] * 100.0
 
 # Stroke unit info:
-catchment = Catchment()
-df_units = catchment.get_unit_services()
+df_units = stroke_maps.load_data.stroke_unit_region_lookup()
 
 if (('_ivt_' in region_type) | ('_mt_' in region_type)):
     # The data is saved with stroke unit postcodes as the only

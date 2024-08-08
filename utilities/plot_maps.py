@@ -10,9 +10,10 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from utilities.maps import convert_shapely_polys_into_xy
 
-from stroke_maps.utils import find_multiindex_column_names
-from stroke_maps.geo import _load_geometry_stroke_units, check_scenario_level
-from stroke_maps.catchment import Catchment
+# from stroke_maps.utils import find_multiindex_column_names
+# from stroke_maps.geo import _load_geometry_stroke_units, check_scenario_level
+# from stroke_maps.catchment import Catchment
+import stroke_maps.load_data
 
 
 def create_stroke_team_markers(df_units=None):
@@ -37,45 +38,41 @@ def create_stroke_team_markers(df_units=None):
 
     # Add stroke team markers.
     if df_units is None:
-        catchment = Catchment()
-        df_units = catchment.get_unit_services()
+        df_units = stroke_maps.load_data.stroke_unit_region_lookup()
     else:
         pass
     # Build geometry:
-    df_units = check_scenario_level(df_units)
-    gdf_points_units = _load_geometry_stroke_units(df_units)
+    gdf_points_units = stroke_maps.load_data.stroke_unit_coordinates()
 
-    # # Convert to British National Grid.
-    # The geometry column should be BNG on import, so just overwrite
-    # the longitude and latitude columns that are by default long/lat.
-    col_geo = find_multiindex_column_names(
-        gdf_points_units, property=['geometry'])
-    # gdf_points_units = gdf_points_units.set_crs(
-    #     'EPSG:27700', allow_override=True)
+    # # # Convert to British National Grid.
+    # # The geometry column should be BNG on import, so just overwrite
+    # # the longitude and latitude columns that are by default long/lat.
+    # col_geo = find_multiindex_column_names(
+    #     gdf_points_units, property=['geometry'])
+    # # gdf_points_units = gdf_points_units.set_crs(
+    # #     'EPSG:27700', allow_override=True)
 
-    # Overwrite long and lat:
-    gdf_points_units[('Longitude', 'any')] = gdf_points_units[col_geo].x
-    gdf_points_units[('Latitude', 'any')] = gdf_points_units[col_geo].y
+    # # Overwrite long and lat:
+    # gdf_points_units[('Longitude', 'any')] = gdf_points_units[col_geo].x
+    # gdf_points_units[('Latitude', 'any')] = gdf_points_units[col_geo].y
 
     # Set up markers using a new column in DataFrame.
     # Set everything to the IVT marker:
     markers = np.full(len(gdf_points_units), 'circle', dtype=object)
     # Update MT units:
-    col_use_mt = find_multiindex_column_names(
-        gdf_points_units, property=['use_mt'])
-    mask_mt = (gdf_points_units[col_use_mt] == 1)
+    mask_mt = (gdf_points_units['use_mt'] == 1)
     markers[mask_mt] = 'square'
     # Store in the DataFrame:
-    gdf_points_units[('marker', 'any')] = markers
+    gdf_points_units['marker'] = markers
 
     # Add markers in separate traces for the sake of legend entries.
     # Pick out which stroke unit types are where in the gdf:
-    col_ivt = ('use_ivt', 'scenario')
-    col_mt = ('use_mt', 'scenario')
-    col_msu = ('use_msu', 'scenario')
+    col_ivt = 'use_ivt'
+    col_mt = 'use_mt'
+    # col_msu = 'use_msu'
     mask_ivt = gdf_points_units[col_ivt] == 1
     mask_mt = gdf_points_units[col_mt] == 1
-    mask_msu = gdf_points_units[col_msu] == 1
+    # mask_msu = gdf_points_units[col_msu] == 1
 
     # Formatting for the markers:
     format_dict = {
@@ -93,13 +90,13 @@ def create_stroke_team_markers(df_units=None):
             'size': 10,
             'colour': 'white'
         },
-        'msu': {
-            'label': 'MSU base',
-            'mask': mask_msu,
-            'marker': 'square',
-            'size': 13,
-            'colour': 'white'
-        },
+        # 'msu': {
+        #     'label': 'MSU base',
+        #     'mask': mask_msu,
+        #     'marker': 'square',
+        #     'size': 13,
+        #     'colour': 'white'
+        # },
     }
 
     # Build the traces for the stroke units...
@@ -108,8 +105,8 @@ def create_stroke_team_markers(df_units=None):
         mask = s_dict['mask']
 
         trace = go.Scatter(
-            x=gdf_points_units.loc[mask, ('Longitude', 'any')],
-            y=gdf_points_units.loc[mask, ('Latitude', 'any')],
+            x=gdf_points_units.loc[mask, 'BNG_E'],
+            y=gdf_points_units.loc[mask, 'BNG_N'],
             mode='markers',
             marker={
                 'symbol': s_dict['marker'],
@@ -119,7 +116,7 @@ def create_stroke_team_markers(df_units=None):
             },
             name=s_dict['label'],
             customdata=np.stack(
-                [gdf_points_units.loc[mask, ('ssnap_name', 'scenario')]],
+                [gdf_points_units.loc[mask, 'ssnap_name']],
                 axis=-1
                 ),
             hovertemplate=(
