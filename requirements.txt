@@ -1,5 +1,6 @@
 cmasher
 geopandas
+fiona
 matplotlib
 numpy
 pandas
