@@ -1,12 +1,12 @@
 cmasher
-geopandas==0.14.2
+geopandas
 matplotlib
-numpy==1.24.0
+numpy
 pandas
 plotly
 pyproj
 pyyaml
-shapely==2.0.1
+shapely
 statsmodels
 stroke-outcome
 stroke-maps
